@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server';
 
-// Constants moved from Frontend
+// CORS headers for mobile app access
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+// Handle OPTIONS for CORS preflight
+export async function OPTIONS() {
+    return NextResponse.json({}, { headers: corsHeaders });
+}
 const DIFFICULTY_PROMPTS = {
     beginner: `Difficulty: Beginner (Basic factual knowledge, direct information)`,
     pro: `Difficulty: Moderate (UPSC Prelims level, conceptual understanding)`,
@@ -22,7 +32,7 @@ export async function POST(req: Request) {
         const apiKey = process.env.OPENROUTER_API_KEY;
 
         if (!apiKey) {
-            return NextResponse.json({ error: 'OpenRouter API Key not configured' }, { status: 500 });
+            return NextResponse.json({ error: 'OpenRouter API Key not configured' }, { status: 500, headers: corsHeaders });
         }
 
         const model = 'google/gemini-2.0-flash-001';
@@ -89,14 +99,14 @@ Output strictly in JSON format as below:
 
         try {
             const parsedContent = JSON.parse(content);
-            return NextResponse.json(parsedContent);
+            return NextResponse.json(parsedContent, { headers: corsHeaders });
         } catch (e) {
             console.error('Failed to parse AI response as JSON:', content);
-            return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500, headers: corsHeaders });
         }
 
     } catch (error: any) {
         console.error('Error generating MCQs:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500, headers: corsHeaders });
     }
 }

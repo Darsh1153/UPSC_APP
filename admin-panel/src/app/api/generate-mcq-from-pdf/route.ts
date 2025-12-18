@@ -9,7 +9,17 @@ const pdf = require('pdf-parse');
 
 export const runtime = 'nodejs';
 
-// Use Edge Runtime or Node Runtime? pdf-parse needs Node.js Buffer and maybe file system access, so Node Runtime is safer. 
+// CORS headers for mobile app access
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+// Handle OPTIONS for CORS preflight
+export async function OPTIONS() {
+    return NextResponse.json({}, { headers: corsHeaders });
+}
 // Next.js App Router API routes default to Node.js unless ‘edge’ is specified.
 
 const DIFFICULTY_PROMPTS = {
@@ -27,7 +37,7 @@ export async function POST(req: NextRequest) {
         const language = formData.get('language') || 'english';
 
         if (!file) {
-            return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+            return NextResponse.json({ error: 'No file uploaded' }, { status: 400, headers: corsHeaders });
         }
 
         // Convert File to Buffer
@@ -41,7 +51,7 @@ export async function POST(req: NextRequest) {
             text = data.text;
         } catch (e) {
             console.error('PDF Parse Error:', e);
-            return NextResponse.json({ error: 'Failed to extract text from PDF' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to extract text from PDF' }, { status: 500, headers: corsHeaders });
         }
 
         // Check if text is sufficient (detect scanned PDF)
@@ -49,7 +59,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({
                 error: 'Insufficient text found. Document might be scanned/image-based.',
                 code: 'SCANNED_PDF'
-            }, { status: 422 });
+            }, { status: 422, headers: corsHeaders });
         }
 
         // Truncate text if too long (OpenRouter limit)
@@ -60,7 +70,7 @@ export async function POST(req: NextRequest) {
 
         const apiKey = process.env.OPENROUTER_API_KEY;
         if (!apiKey) {
-            return NextResponse.json({ error: 'OpenRouter API Key not configured' }, { status: 500 });
+            return NextResponse.json({ error: 'OpenRouter API Key not configured' }, { status: 500, headers: corsHeaders });
         }
 
         const model = 'google/gemini-2.0-flash-001';
@@ -127,14 +137,14 @@ ${truncatedText}
 
         try {
             const parsedContent = JSON.parse(content);
-            return NextResponse.json(parsedContent);
+            return NextResponse.json(parsedContent, { headers: corsHeaders });
         } catch (e) {
             console.error('Failed to parse AI response as JSON:', content);
-            return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500, headers: corsHeaders });
         }
 
     } catch (error: any) {
         console.error('Error generating MCQs from PDF:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500, headers: corsHeaders });
     }
 }

@@ -10,12 +10,14 @@ export function middleware(request: NextRequest) {
         'http://127.0.0.1:8081',
         'http://127.0.0.1:3000',
         'https://upsc-app-admin.vercel.app',
+        'https://my-app-three-alpha-63.vercel.app',
+        'https://admin-panel-umber-eight-34.vercel.app',
     ];
 
-    // Check if origin is allowed
-    const isAllowedOrigin = origin && allowedOrigins.includes(origin);
-    // When using credentials, we must specify exact origin, not '*'
-    const corsOrigin = isAllowedOrigin ? origin : 'http://localhost:8081';
+    // Check if origin is allowed or request has no origin (mobile native apps often don't send origin)
+    const isAllowedOrigin = !origin || allowedOrigins.includes(origin);
+    // For mobile apps without origin, use wildcard '*'
+    const corsOrigin = origin ? (isAllowedOrigin ? origin : '*') : '*';
 
     // Handle preflight requests immediately
     if (request.method === 'OPTIONS') {
@@ -39,7 +41,7 @@ export function middleware(request: NextRequest) {
     response.headers.delete('Access-Control-Allow-Methods');
     response.headers.delete('Access-Control-Allow-Headers');
     response.headers.delete('Access-Control-Allow-Credentials');
-    
+
     // Set CORS headers
     response.headers.set('Access-Control-Allow-Origin', corsOrigin);
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
