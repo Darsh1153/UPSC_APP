@@ -3,11 +3,7 @@ import { db } from '@/lib/db';
 import { articles, articleMcqs } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-};
+import { corsHeaders } from '../../../../_cors';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 

@@ -26,6 +26,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
 // @ts-ignore
+import { getMobileApiEndpoint } from '../../../../config/api';
+// @ts-ignore
 import { useTheme } from '../../Reference/theme/ThemeContext';
 // @ts-ignore
 import { useWebStyles } from '../../../components/WebContainer';
@@ -355,127 +357,54 @@ async function readFileAsBase64(pickedFile: PickedFile): Promise<string> {
     }
 }
 
-// ===================== STEP 3: Generate MCQs directly from PDF using OpenRouter =====================
-// OpenRouter has native PDF parsing with free 'pdf-text' engine - NO page limits!
-
+// ===================== STEP 3: Generate MCQs using Backend API =====================
 async function generateMCQsFromPDF(base64Data: string, fileName: string, mimeType: string, count: number): Promise<MCQ[]> {
-    console.log('[PDF-MCQ] Using OpenRouter native PDF parsing...');
-    console.log('[PDF-MCQ] File:', fileName, 'Type:', mimeType, 'Count:', count);
+    console.log('[PDF-MCQ] Generating MCQs via Backend API...');
 
-    const isPDF = mimeType.includes('pdf');
-    const dataUrl = `data:${mimeType};base64,${base64Data}`;
-
-    const prompt = `You are an expert UPSC exam question creator. Analyze this document and create EXACTLY ${count} Multiple Choice Questions (MCQs).
-
-REQUIREMENTS:
-1. Create EXACTLY ${count} MCQs - no more, no less
-2. Each question should be challenging and test understanding
-3. 4 options per question (A, B, C, D)
-4. Only ONE correct answer per question
-5. Include brief explanation for each answer
-
-OUTPUT FORMAT (follow EXACTLY for each question):
-
-Question 1: [Question text]
-A. [Option A text]
-B. [Option B text]
-C. [Option C text]
-D. [Option D text]
-Correct Answer: [Single letter: A, B, C, or D]
-Explanation: [Brief explanation]
-
-Question 2: [Question text]
-A. [Option A text]
-B. [Option B text]
-C. [Option C text]
-D. [Option D text]
-Correct Answer: [Single letter: A, B, C, or D]
-Explanation: [Brief explanation]
-
-... continue this exact format for all ${count} questions ...
-
-START GENERATING ${count} MCQs NOW:`;
-
-    console.log('[PDF-MCQ] Sending to OpenRouter with PDF file...');
+    // Get backend endpoint
+    // Note: getMobileApiEndpoint handles adding /mobile prefix to MOBILE_API_URL
+    const endpoint = getMobileApiEndpoint('/pdf-generator');
+    console.log('[PDF-MCQ] Endpoint:', endpoint);
 
     try {
-        const response = await fetch(CONFIG.OPENROUTER_URL, {
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${CONFIG.OPENROUTER_API_KEY}`,
                 'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://upsc-prep-app.com',
-                'X-Title': 'UPSC Prep App',
             },
             body: JSON.stringify({
-                model: CONFIG.AI_MODEL,
-                messages: [{
-                    role: 'user',
-                    content: [
-                        {
-                            type: 'text',
-                            text: prompt,
-                        },
-                        {
-                            type: 'file',
-                            file: {
-                                filename: fileName,
-                                file_data: dataUrl,
-                            },
-                        },
-                    ],
-                }],
-                // Use free pdf-text engine for PDFs
-                plugins: isPDF ? [{
-                    id: 'file-parser',
-                    pdf: {
-                        engine: 'pdf-text', // FREE - no cost!
-                    },
-                }] : undefined,
-                max_tokens: Math.min(16000, count * 500),
-                temperature: 0.7,
+                fileBase64: base64Data,
+                count: count,
+                fileName: fileName,
+                mimeType: mimeType
             }),
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('[PDF-MCQ] OpenRouter Error:', response.status, errorText);
+            console.error('[PDF-MCQ] Backend API Error:', response.status, errorText);
 
-            // Try to parse the error message
-            let errorMessage = `API Error: ${response.status}`;
+            // Try to parse parsing error
             try {
                 const errorJson = JSON.parse(errorText);
-                if (errorJson.error?.message) {
-                    errorMessage = errorJson.error.message;
-                }
+                throw new Error(errorJson.error || `Server Error: ${response.status}`);
             } catch (e) {
-                // Use raw error text if not JSON
-                if (errorText.length < 200) {
-                    errorMessage = errorText;
-                }
+                throw new Error(`Server Error: ${response.status}`);
             }
-
-            throw new Error(errorMessage);
         }
 
         const data = await response.json();
-        const content = data.choices?.[0]?.message?.content;
 
-        if (!content) {
-            throw new Error('No response from AI');
+        if (!data.success || !data.mcqs) {
+            throw new Error(data.error || 'Failed to generate MCQs');
         }
 
-        console.log('[PDF-MCQ] Response length:', content.length);
-
-        // Parse the MCQ response
-        const mcqs = parseMCQResponse(content);
-        console.log('[PDF-MCQ] Parsed', mcqs.length, 'MCQs');
-
-        return mcqs;
+        console.log('[PDF-MCQ] Successfully received', data.mcqs.length, 'MCQs');
+        return data.mcqs;
 
     } catch (error: any) {
         console.error('[PDF-MCQ] Error:', error);
-        throw new Error(`Failed to generate MCQs: ${error.message}`);
+        throw new Error(error.message || 'Failed to generate MCQs');
     }
 }
 

@@ -18,7 +18,7 @@ import { useWebStyles } from '../components/WebContainer';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
-import { MOBILE_API_URL } from '../config/api';
+import { getMobileApiEndpoint } from '../config/api';
 
 export default function ArticleDetailScreen({ route, navigation }) {
   const { articleId } = route.params;
@@ -44,7 +44,8 @@ export default function ArticleDetailScreen({ route, navigation }) {
   const fetchArticle = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${MOBILE_API_URL}/articles/${articleId}`);
+      const endpoint = getMobileApiEndpoint(`/articles/${articleId}`);
+      const response = await fetch(endpoint);
       const data = await response.json();
 
       if (data.error) {
@@ -82,9 +83,10 @@ export default function ArticleDetailScreen({ route, navigation }) {
     try {
       setMcqsLoading(true);
       console.log('[ArticleDetailScreen] Fetching MCQs for article:', articleId);
-      console.log('[ArticleDetailScreen] API URL:', `${MOBILE_API_URL}/articles/${articleId}/mcqs`);
+      const endpoint = getMobileApiEndpoint(`/articles/${articleId}/mcqs`);
+      console.log('[ArticleDetailScreen] API URL:', endpoint);
 
-      const response = await fetch(`${MOBILE_API_URL}/articles/${articleId}/mcqs`);
+      const response = await fetch(endpoint);
       console.log('[ArticleDetailScreen] MCQs response status:', response.status);
 
       const data = await response.json();
@@ -108,9 +110,10 @@ export default function ArticleDetailScreen({ route, navigation }) {
     try {
       setGeneratingMCQs(true);
       console.log('[ArticleDetailScreen] Generating MCQs for article:', articleId);
-      console.log('[ArticleDetailScreen] API URL:', `${MOBILE_API_URL}/articles/${articleId}/mcqs/generate`);
+      const endpoint = getMobileApiEndpoint(`/articles/${articleId}/mcqs/generate`);
+      console.log('[ArticleDetailScreen] API URL:', endpoint);
 
-      const response = await fetch(`${MOBILE_API_URL}/articles/${articleId}/mcqs/generate`, {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

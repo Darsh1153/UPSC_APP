@@ -49,6 +49,11 @@ const getApiUrl = () => {
 export const API_BASE_URL = getApiUrl();
 export const MOBILE_API_URL = `${API_BASE_URL}/mobile`;
 
+// Debug log for mobile API URL (development only)
+if (__DEV__) {
+  console.log('[API] MOBILE_API_URL:', MOBILE_API_URL);
+}
+
 // Helper function to get full URL
 export const getApiEndpoint = (endpoint) => {
   return `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
@@ -57,6 +62,8 @@ export const getApiEndpoint = (endpoint) => {
 export const getMobileApiEndpoint = (endpoint) => {
   return `${MOBILE_API_URL}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
 };
+
+
 
 export default {
   API_BASE_URL,
