@@ -30,7 +30,7 @@ interface ModuleCard {
   title: string;
   subtitle: string;
   icon: keyof typeof Ionicons.glyphMap;
-  gradientColors: readonly [string, string, ...string[]];
+  gradientColors: readonly string[];
   screen: string;
   count?: string;
 }
@@ -138,7 +138,7 @@ const ModuleCardComponent: React.FC<ModuleCardComponentProps> = ({
         onPressOut={handlePressOut}
       >
         <LinearGradient
-          colors={module.gradientColors}
+          colors={module.gradientColors as any}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.moduleIconContainer}
@@ -249,7 +249,7 @@ const ReferenceScreen: React.FC<ReferenceScreenProps> = ({ navigation }) => {
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          { 
+          {
             paddingBottom: insets.bottom + 20,
             paddingHorizontal: horizontalPadding,
           },
@@ -258,7 +258,7 @@ const ReferenceScreen: React.FC<ReferenceScreenProps> = ({ navigation }) => {
       >
         {/* Hero Banner */}
         <LinearGradient
-          colors={theme.gradients.header as readonly [string, string, ...string[]]}
+          colors={theme.gradients.header as any}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.heroBanner}
@@ -270,6 +270,9 @@ const ReferenceScreen: React.FC<ReferenceScreenProps> = ({ navigation }) => {
               <Ionicons name="ribbon" size={24} color="rgba(255,255,255,0.3)" />
             </View>
             <Text style={styles.heroTitle}>UPSC Visual Reference</Text>
+            <View style={styles.comingSoonBadge}>
+              <Text style={styles.comingSoonText}>Coming Soon</Text>
+            </View>
             <Text style={styles.heroSubtitle}>
               Interactive timelines, flowcharts, and infographics for effective
               learning
@@ -411,6 +414,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 8,
+  },
+  comingSoonBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  comingSoonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   heroSubtitle: {
     fontSize: 14,

@@ -42,7 +42,7 @@ const getApiUrl = () => {
 
     return 'http://localhost:3000/api';
   } else {
-    return 'https://your-production-api.com/api';
+    return 'https://admin-panel-qiwvx3r0b-darsh1153s-projects.vercel.app/api';
   }
 };
 

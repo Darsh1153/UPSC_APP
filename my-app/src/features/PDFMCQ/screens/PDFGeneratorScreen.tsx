@@ -38,7 +38,7 @@ if (Platform.OS !== 'web') {
 
 // ===================== CONFIGURATION =====================
 const CONFIG = {
-    OPENROUTER_API_KEY: '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',
+    OPENROUTER_API_KEY: process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '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',
     OPENROUTER_URL: 'https://openrouter.ai/api/v1/chat/completions',
     // Gemini 3 Pro Preview
     AI_MODEL: 'google/gemini-3-pro-preview',
@@ -1036,13 +1036,7 @@ export default function PDFGeneratorScreen() {
                                 <Text style={styles.exportButtonText}>PDF Report</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={[styles.exportButton, { backgroundColor: '#10B981' }]}
-                                onPress={() => exportToXLSX(mcqs, selectedAnswers)}
-                            >
-                                <Ionicons name="grid" size={16} color="#fff" />
-                                <Text style={styles.exportButtonText}>Excel</Text>
-                            </TouchableOpacity>
+
 
                             <TouchableOpacity
                                 style={[styles.exportButton, { backgroundColor: '#3B82F6' }]}
@@ -1066,7 +1060,7 @@ export default function PDFGeneratorScreen() {
                                 >
                                     {/* Question */}
                                     <Text style={[styles.mcqQuestion, { color: theme.colors.text }]}>
-                                        {index + 1}. {mcq.question}
+                                        {index + 1}. {mcq.question.replace(/\*\*/g, '')}
                                     </Text>
 
                                     {/* Options */}
@@ -1112,7 +1106,7 @@ export default function PDFGeneratorScreen() {
                                                     <Text style={styles.optionLetterText}>{opt}</Text>
                                                 </View>
                                                 <Text style={[styles.optionText, { color: theme.colors.text }]}>
-                                                    {optionText}
+                                                    {optionText.replace(/\*\*/g, '')}
                                                 </Text>
                                                 {revealed && isCorrectOption && (
                                                     <Ionicons name="checkmark-circle" size={22} color="#10B981" />
@@ -1134,7 +1128,7 @@ export default function PDFGeneratorScreen() {
                                                 </Text>
                                             </View>
                                             <Text style={[styles.explanationText, { color: theme.colors.textSecondary }]}>
-                                                {mcq.explanation}
+                                                {mcq.explanation.replace(/\*\*/g, '')}
                                             </Text>
                                         </View>
                                     )}

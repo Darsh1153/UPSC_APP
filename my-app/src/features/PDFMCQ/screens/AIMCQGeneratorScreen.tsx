@@ -30,13 +30,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../Reference/theme/ThemeContext';
 // @ts-ignore
 import { useWebStyles } from '../../../components/WebContainer';
+import { API_BASE_URL } from '../../../config/api';
 
 // ===================== CONFIGURATION =====================
-const CONFIG = {
-    OPENROUTER_API_KEY: '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',
-    OPENROUTER_URL: 'https://openrouter.ai/api/v1/chat/completions',
-    AI_MODEL: 'google/gemini-3-pro-preview',
-};
+// ===================== CONFIGURATION =====================
+// API Key is now handled in backend
+
 
 // ===================== TYPES =====================
 interface MCQ {
@@ -201,119 +200,59 @@ async function generateMCQs(
     count: number,
     preferences: string
 ): Promise<MCQ[]> {
-    const langInstruction = language === 'hindi'
-        ? 'Generate ALL content in Hindi (हिंदी). Questions, options, and explanations must be in Hindi only.'
-        : 'Generate ALL content in English only.';
+    try {
+        const response = await fetch(`${API_BASE_URL}/generate-mcq`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                examType,
+                paperType,
+                difficulty,
+                language,
+                numQuestions: count,
+                preferences
+            }),
+        });
 
-    const prompt = `${DIFFICULTY_PROMPTS[difficulty]}
-
-EXAM TYPE: UPSC ${examType === 'prelims' ? 'Prelims' : 'Mains'}
-PAPER: ${paperType} - Topics: ${PAPER_TOPICS[paperType]}
-LANGUAGE: ${langInstruction}
-${preferences ? `SPECIFIC FOCUS: ${preferences}` : ''}
-
-Create EXACTLY ${count} high-quality MCQs following UPSC pattern.
-
-OUTPUT FORMAT (follow EXACTLY):
-
-Question 1: [Question text]
-A. [Option A]
-B. [Option B]
-C. [Option C]
-D. [Option D]
-Correct Answer: [A/B/C/D]
-Explanation: [Brief explanation]
-
-Question 2: [Question text]
-A. [Option A]
-B. [Option B]
-C. [Option C]
-D. [Option D]
-Correct Answer: [A/B/C/D]
-Explanation: [Brief explanation]
-
-... continue for all ${count} questions ...
-
-GENERATE ${count} MCQs NOW:`;
-
-    const response = await fetch(CONFIG.OPENROUTER_URL, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${CONFIG.OPENROUTER_API_KEY}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://upsc-prep-app.com',
-            'X-Title': 'UPSC AI MCQ Generator',
-        },
-        body: JSON.stringify({
-            model: CONFIG.AI_MODEL,
-            messages: [{ role: 'user', content: prompt }],
-            max_tokens: Math.min(16000, count * 500),
-            temperature: 0.7,
-        }),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[AI-MCQ] Error:', response.status, errorText);
-        throw new Error(`API Error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-
-    if (!content) throw new Error('No response from AI');
-
-    return parseMCQResponse(content);
-}
-
-function parseMCQResponse(content: string): MCQ[] {
-    const mcqs: MCQ[] = [];
-    const questionBlocks = content.split(/Question\s+\d+:/i).filter(block => block.trim());
-
-    questionBlocks.forEach((block, index) => {
-        try {
-            const lines = block.split('\n').map(l => l.trim()).filter(l => l);
-
-            let question = '';
-            let optionA = '', optionB = '', optionC = '', optionD = '';
-            let correctAnswer = '';
-            let explanation = '';
-
-            for (const line of lines) {
-                if (line.match(/^A\./i)) optionA = line.replace(/^A\.\s*/i, '');
-                else if (line.match(/^B\./i)) optionB = line.replace(/^B\.\s*/i, '');
-                else if (line.match(/^C\./i)) optionC = line.replace(/^C\.\s*/i, '');
-                else if (line.match(/^D\./i)) optionD = line.replace(/^D\.\s*/i, '');
-                else if (line.match(/Correct Answer/i)) {
-                    const match = line.match(/[ABCD]/i);
-                    if (match) correctAnswer = match[0].toUpperCase();
-                }
-                else if (line.match(/Explanation/i)) {
-                    explanation = line.replace(/Explanation:?\s*/i, '');
-                }
-                else if (!optionA && !question) {
-                    question = line;
-                }
-            }
-
-            if (question && optionA && optionB && optionC && optionD && correctAnswer) {
-                mcqs.push({
-                    id: index + 1,
-                    question,
-                    optionA,
-                    optionB,
-                    optionC,
-                    optionD,
-                    correctAnswer,
-                    explanation: explanation || 'No explanation provided.'
-                });
-            }
-        } catch (e) {
-            console.warn('[AI-MCQ] Failed to parse question', index + 1);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Server Error: ${response.status}`);
         }
-    });
 
-    return mcqs;
+        const data = await response.json();
+
+        if (!data.questions || !Array.isArray(data.questions)) {
+            throw new Error('Invalid response format from server');
+        }
+
+        // Map backend JSON to MCQ interface
+        return data.questions.map((q: any, index: number) => {
+            const options = q.options || [];
+            if (options.length < 4) throw new Error(`Question ${index + 1} has fewer than 4 options`);
+
+            let correctAnswer = 'A';
+            if (options[1].isCorrect) correctAnswer = 'B';
+            if (options[2].isCorrect) correctAnswer = 'C';
+            if (options[3].isCorrect) correctAnswer = 'D';
+
+            return {
+                id: index + 1,
+                question: q.question,
+                optionA: options[0].text,
+                optionB: options[1].text,
+                optionC: options[2].text,
+                optionD: options[3].text,
+                correctAnswer,
+                explanation: q.explanation || 'No explanation provided.'
+            };
+        });
+
+    } catch (error: any) {
+        console.error('MCQ Generation Error:', error);
+        throw error;
+    }
 }
 
 // ===================== MAIN COMPONENT =====================
@@ -435,7 +374,7 @@ export default function AIMCQGeneratorScreen() {
                                         styles.difficultyText,
                                         { color: difficulty === level ? '#fff' : theme.colors.text }
                                     ]}>
-                                        {level === 'beginner' ? '🌱 Beginner' : level === 'pro' ? '⚡ Pro' : '🔥 Advanced'}
+                                        {level === 'beginner' ? 'Beginner' : level === 'pro' ? 'Pro' : 'Advanced'}
                                     </Text>
                                 </TouchableOpacity>
                             ))}

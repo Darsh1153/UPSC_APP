@@ -83,10 +83,10 @@ export default function ArticleDetailScreen({ route, navigation }) {
       setMcqsLoading(true);
       console.log('[ArticleDetailScreen] Fetching MCQs for article:', articleId);
       console.log('[ArticleDetailScreen] API URL:', `${MOBILE_API_URL}/articles/${articleId}/mcqs`);
-      
+
       const response = await fetch(`${MOBILE_API_URL}/articles/${articleId}/mcqs`);
       console.log('[ArticleDetailScreen] MCQs response status:', response.status);
-      
+
       const data = await response.json();
       console.log('[ArticleDetailScreen] MCQs response data:', data);
 
@@ -109,7 +109,7 @@ export default function ArticleDetailScreen({ route, navigation }) {
       setGeneratingMCQs(true);
       console.log('[ArticleDetailScreen] Generating MCQs for article:', articleId);
       console.log('[ArticleDetailScreen] API URL:', `${MOBILE_API_URL}/articles/${articleId}/mcqs/generate`);
-      
+
       const response = await fetch(`${MOBILE_API_URL}/articles/${articleId}/mcqs/generate`, {
         method: 'POST',
         headers: {
@@ -118,7 +118,7 @@ export default function ArticleDetailScreen({ route, navigation }) {
       });
 
       console.log('[ArticleDetailScreen] Generate MCQs response status:', response.status);
-      
+
       const data = await response.json();
       console.log('[ArticleDetailScreen] Generate MCQs response data:', data);
 
@@ -165,11 +165,11 @@ export default function ArticleDetailScreen({ route, navigation }) {
       const newAnimations = {};
       const newFeedbackAnimations = {};
       const newShuffledMcqs = {};
-      
+
       mcqs.forEach((mcq) => {
         newAnimations[mcq.id] = new Animated.Value(1);
         newFeedbackAnimations[mcq.id] = new Animated.Value(0);
-        
+
         // Get original option values
         const originalOptions = [
           { label: 'A', text: mcq.optionA },
@@ -177,10 +177,10 @@ export default function ArticleDetailScreen({ route, navigation }) {
           { label: 'C', text: mcq.optionC },
           { label: 'D', text: mcq.optionD },
         ];
-        
+
         // Shuffle the option values (text), but keep labels A, B, C, D in order
         const shuffledOptions = shuffleArray(originalOptions);
-        
+
         // Create shuffled options object with labels A, B, C, D in order
         const shuffledOptionsMap = {
           A: shuffledOptions[0].text,
@@ -188,21 +188,21 @@ export default function ArticleDetailScreen({ route, navigation }) {
           C: shuffledOptions[2].text,
           D: shuffledOptions[3].text,
         };
-        
+
         // Find which label (A, B, C, or D) now contains the originally correct answer's text
         const originalCorrectText = mcq[`option${mcq.correctAnswer}`];
         const newCorrectAnswer = Object.keys(shuffledOptionsMap).find(
           label => shuffledOptionsMap[label] === originalCorrectText
         ) || mcq.correctAnswer; // Fallback to original if not found
-        
+
         newShuffledMcqs[mcq.id] = {
           shuffledOptions: shuffledOptionsMap,
           correctAnswer: newCorrectAnswer,
         };
-        
+
         console.log(`[MCQ ${mcq.id}] Original correct: ${mcq.correctAnswer}, New correct: ${newCorrectAnswer}`);
       });
-      
+
       setAnimationValues(newAnimations);
       setFeedbackAnimations(newFeedbackAnimations);
       setShuffledMcqs(newShuffledMcqs);
@@ -216,7 +216,7 @@ export default function ArticleDetailScreen({ route, navigation }) {
       console.error('Shuffled data not found for MCQ:', mcqId);
       return;
     }
-    
+
     const isCorrect = selectedOption === shuffledData.correctAnswer;
 
     setSelectedAnswers((prev) => ({
@@ -315,7 +315,7 @@ export default function ArticleDetailScreen({ route, navigation }) {
           : 'NOT ANSWERED';
 
         reportContent += `Question ${index + 1}: ${mcq.question}\n`;
-        
+
         // Use shuffled options if available, otherwise use original
         if (shuffledData) {
           reportContent += `A. ${shuffledData.shuffledOptions.A}\n`;
@@ -330,7 +330,7 @@ export default function ArticleDetailScreen({ route, navigation }) {
           reportContent += `D. ${mcq.optionD}\n`;
           reportContent += `Correct Answer: ${mcq.correctAnswer}\n`;
         }
-        
+
         reportContent += `Your Answer: ${selected || 'Not answered'}\n`;
         reportContent += `Status: ${status}\n`;
         if (mcq.explanation) {
@@ -570,13 +570,13 @@ export default function ArticleDetailScreen({ route, navigation }) {
               {article.summary.split('\n').map((line, index) => {
                 // Remove all asterisks/stars from the line
                 const cleanLine = line.replace(/\*\*/g, '').replace(/\*/g, '').trim();
-                
+
                 // Skip empty lines
                 if (!cleanLine) return null;
-                
+
                 // Check if it's a numbered list item (starts with number and period)
                 const numberMatch = cleanLine.match(/^(\d+)\.\s*(.+)$/);
-                
+
                 if (numberMatch) {
                   const [, number, text] = numberMatch;
                   return (
@@ -590,11 +590,11 @@ export default function ArticleDetailScreen({ route, navigation }) {
                     </View>
                   );
                 }
-                
+
                 // Regular paragraph line
                 return (
-                  <Text 
-                    key={index} 
+                  <Text
+                    key={index}
                     style={[styles.summaryText, { color: theme.colors.textSecondary }]}
                   >
                     {cleanLine}
@@ -667,7 +667,7 @@ export default function ArticleDetailScreen({ route, navigation }) {
                 return (
                   <View key={mcq.id || index} style={[styles.mcqCard, { backgroundColor: theme.colors.surface }]}>
                     <Text style={[styles.mcqQuestion, { color: theme.colors.text }]}>
-                      {index + 1}. {mcq.question}
+                      {index + 1}. {mcq.question.replace(/^:\s*/, '')}
                     </Text>
                     <ActivityIndicator size="small" color={theme.colors.primary} style={{ margin: 20 }} />
                   </View>
@@ -686,7 +686,7 @@ export default function ArticleDetailScreen({ route, navigation }) {
                     ? { backgroundColor: theme.colors.primary + '30', borderColor: theme.colors.primary, borderWidth: 2 }
                     : { backgroundColor: isDark ? '#2A2A2E' : '#F5F5F7' };
                 }
-                
+
                 if (option === shuffledData.correctAnswer) {
                   return { backgroundColor: '#10B981' + '30', borderColor: '#10B981', borderWidth: 2 };
                 }
@@ -727,9 +727,9 @@ export default function ArticleDetailScreen({ route, navigation }) {
                   ]}
                 >
                   <Text style={[styles.mcqQuestion, { color: theme.colors.text }]}>
-                    {index + 1}. {mcq.question}
+                    {index + 1}. {mcq.question.replace(/^:\s*/, '')}
                   </Text>
-                  
+
                   {/* Feedback Animation */}
                   {showResult && (
                     <Animated.View
@@ -762,12 +762,12 @@ export default function ArticleDetailScreen({ route, navigation }) {
                     {['A', 'B', 'C', 'D'].map((option) => {
                       // Get shuffled option text
                       const optionText = shuffledData.shuffledOptions[option];
-                      
+
                       if (!optionText) {
                         console.error('[ArticleDetailScreen] Missing option text for:', option, 'in MCQ:', mcq.id);
                         return null;
                       }
-                      
+
                       return (
                         <TouchableOpacity
                           key={option}

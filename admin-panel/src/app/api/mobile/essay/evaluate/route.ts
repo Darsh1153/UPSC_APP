@@ -6,7 +6,7 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
 // Handle preflight requests
 export async function OPTIONS() {
@@ -24,6 +24,15 @@ export async function POST(request: NextRequest) {
         console.log('[Essay Evaluate POST] Topic:', topic?.substring(0, 50));
         console.log('[Essay Evaluate POST] Has Image:', !!image);
         console.log('[Essay Evaluate POST] Answer length:', answerText?.length);
+
+        // key validation
+        if (!OPENROUTER_API_KEY) {
+            console.error('[Essay Evaluate POST] Missing OpenRouter API Key');
+            return NextResponse.json(
+                { error: 'Server configuration error: Missing API Key' },
+                { status: 500, headers: corsHeaders }
+            );
+        }
 
         // Validation
         if (!topic) {

@@ -10,11 +10,11 @@ export function getAuthHeaders(): HeadersInit {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
-  
+
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
+
   return headers;
 }
 
@@ -23,9 +23,9 @@ export async function apiFetch(url: string, options: RequestInit = {}): Promise<
     ...getAuthHeaders(),
     ...options.headers,
   };
-  
-  console.log('API Fetch:', url, 'Headers:', { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : 'None' });
-  
+
+  console.log('API Fetch:', url, 'Headers:', { ...headers, Authorization: (headers as any).Authorization ? 'Bearer ***' : 'None' });
+
   return fetch(url, {
     ...options,
     headers,

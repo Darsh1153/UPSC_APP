@@ -1,10 +1,12 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext({});
 
 const USER_STORAGE_KEY = '@upsc_user';
 const GUEST_USER_KEY = '@upsc_guest_user';
+const SUPABASE_SESSION_KEY = '@upsc_supabase_session';
 
 // Generate a unique guest ID
 const generateGuestId = () => {
@@ -20,42 +22,114 @@ export const AuthProvider = ({ children }) => {
   // Check for existing user session on app launch
   useEffect(() => {
     checkUserSession();
+
+    // Set up Supabase auth state listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[AuthContext] Auth state changed:', event);
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        await handleSupabaseUser(session.user, session);
+      } else if (event === 'SIGNED_OUT') {
+        // Only clear if user is not in guest mode
+        if (!isGuestMode) {
+          await clearUserData();
+        }
+      }
+    });
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
+
+  const handleSupabaseUser = async (supabaseUser, session) => {
+    try {
+      const userData = {
+        id: supabaseUser.id,
+        email: supabaseUser.email,
+        name: supabaseUser.user_metadata?.name ||
+          supabaseUser.user_metadata?.full_name ||
+          supabaseUser.email?.split('@')[0] || 'User',
+        picture: supabaseUser.user_metadata?.picture || null,
+        provider: 'supabase',
+        isGuest: false,
+        signedInAt: new Date().toISOString(),
+      };
+
+      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
+      if (session) {
+        await AsyncStorage.setItem(SUPABASE_SESSION_KEY, JSON.stringify(session));
+      }
+      await AsyncStorage.setItem('@has_launched', 'true');
+
+      setUser(userData);
+      setIsGuestMode(false);
+      setIsFirstLaunch(false);
+
+      console.log('[AuthContext] Supabase user signed in:', userData.email);
+    } catch (error) {
+      console.error('[AuthContext] Error handling Supabase user:', error);
+    }
+  };
+
+  const clearUserData = async () => {
+    await AsyncStorage.removeItem(USER_STORAGE_KEY);
+    await AsyncStorage.removeItem(SUPABASE_SESSION_KEY);
+    setUser(null);
+    setIsGuestMode(false);
+  };
 
   const checkUserSession = async () => {
     try {
-      console.log('Checking user session...');
-      
+      console.log('[AuthContext] Checking user session...');
+
       const hasLaunched = await AsyncStorage.getItem('@has_launched');
       if (hasLaunched) {
         setIsFirstLaunch(false);
       }
-      
+
+      // First, check for active Supabase session
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (session?.user && !error) {
+        console.log('[AuthContext] Found active Supabase session');
+        await handleSupabaseUser(session.user, session);
+        setIsLoading(false);
+        return;
+      }
+
       // Check for stored user (regular or guest)
       const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
       const guestUser = await AsyncStorage.getItem(GUEST_USER_KEY);
-      
+
       if (storedUser) {
         try {
           const userData = JSON.parse(storedUser);
-          setUser(userData);
-          setIsGuestMode(userData.isGuest || false);
-          console.log('User restored from storage:', userData.email || userData.name);
+
+          // If it's a Supabase user but no active session, clear it
+          if (userData.provider === 'supabase' && !session) {
+            console.log('[AuthContext] Supabase user stored but no session, clearing');
+            await clearUserData();
+          } else {
+            setUser(userData);
+            setIsGuestMode(userData.isGuest || false);
+            console.log('[AuthContext] User restored from storage:', userData.email || userData.name);
+          }
         } catch (e) {
-          console.error('Error parsing stored user:', e);
+          console.error('[AuthContext] Error parsing stored user:', e);
         }
       } else if (guestUser) {
         try {
           const userData = JSON.parse(guestUser);
           setUser(userData);
           setIsGuestMode(true);
-          console.log('Guest user restored:', userData.name);
+          console.log('[AuthContext] Guest user restored:', userData.name);
         } catch (e) {
-          console.error('Error parsing guest user:', e);
+          console.error('[AuthContext] Error parsing guest user:', e);
         }
       }
     } catch (error) {
-      console.error('Error checking user session:', error);
+      console.error('[AuthContext] Error checking user session:', error);
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +137,7 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (userData) => {
     try {
-      console.log('Signing in user:', userData.email || userData.name);
+      console.log('[AuthContext] Signing in user:', userData.email || userData.name);
       const userToStore = {
         ...userData,
         signedInAt: new Date().toISOString(),
@@ -74,7 +148,7 @@ export const AuthProvider = ({ children }) => {
       setIsGuestMode(userData.isGuest || false);
       setIsFirstLaunch(false);
     } catch (error) {
-      console.error('Error signing in:', error);
+      console.error('[AuthContext] Error signing in:', error);
       throw error;
     }
   };
@@ -82,7 +156,7 @@ export const AuthProvider = ({ children }) => {
   // Sign in as guest - no backend required
   const signInAsGuest = async (name = 'Guest User') => {
     try {
-      console.log('Signing in as guest:', name);
+      console.log('[AuthContext] Signing in as guest:', name);
       const guestUser = {
         id: generateGuestId(),
         name: name,
@@ -100,74 +174,94 @@ export const AuthProvider = ({ children }) => {
       setIsFirstLaunch(false);
       return guestUser;
     } catch (error) {
-      console.error('Error signing in as guest:', error);
+      console.error('[AuthContext] Error signing in as guest:', error);
       throw error;
     }
   };
 
   const signOut = async () => {
     try {
-      console.log('Signing out user');
+      console.log('[AuthContext] Signing out user');
+
+      // Sign out from Supabase if authenticated
+      if (user?.provider === 'supabase') {
+        await supabase.auth.signOut();
+      }
+
       await AsyncStorage.removeItem(USER_STORAGE_KEY);
       await AsyncStorage.removeItem(GUEST_USER_KEY);
+      await AsyncStorage.removeItem(SUPABASE_SESSION_KEY);
       setUser(null);
       setIsGuestMode(false);
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('[AuthContext] Error signing out:', error);
+      // Force clear even on error
       await AsyncStorage.removeItem(USER_STORAGE_KEY);
       await AsyncStorage.removeItem(GUEST_USER_KEY);
+      await AsyncStorage.removeItem(SUPABASE_SESSION_KEY);
       setUser(null);
       setIsGuestMode(false);
     }
   };
 
-  // Simple local sign in - stores user data locally without backend
+  // Supabase sign in with email and password
   const signInWithEmail = async (email, password) => {
     try {
-      console.log('Signing in locally with email:', email);
-      
-      // For local-only mode, just create a user object and store it
-      // No backend validation - this is purely for local data organization
-      const userId = 'local_' + email.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Date.now().toString(36);
-      
-      const userData = {
-        id: userId,
-        email: email,
-        name: email.split('@')[0] || 'User',
-        picture: null,
-        provider: 'local',
-        isLocal: true,
-      };
-      
-      await signIn(userData);
-      return userData;
+      console.log('[AuthContext] Signing in with Supabase:', email);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error('[AuthContext] Sign in error:', error.message);
+        throw new Error(error.message);
+      }
+
+      if (!data?.user) {
+        throw new Error('No user data returned from sign in');
+      }
+
+      // The onAuthStateChange listener will handle setting the user
+      console.log('[AuthContext] Sign in successful:', data.user.email);
+      return data.user;
     } catch (error) {
-      console.error('Error in signInWithEmail:', error);
+      console.error('[AuthContext] Error in signInWithEmail:', error);
       throw error;
     }
   };
 
-  // Simple local sign up - stores user data locally without backend
+  // Supabase sign up with email and password
   const signUpWithEmail = async (email, password, name) => {
     try {
-      console.log('Signing up locally with email:', email);
-      
-      // For local-only mode, just create a user object and store it
-      const userId = 'local_' + email.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Date.now().toString(36);
-      
-      const userData = {
-        id: userId,
-        email: email,
-        name: name || email.split('@')[0] || 'User',
-        picture: null,
-        provider: 'local',
-        isLocal: true,
-      };
-      
-      await signIn(userData);
-      return userData;
+      console.log('[AuthContext] Signing up with Supabase:', email);
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name,
+            full_name: name,
+          },
+        },
+      });
+
+      if (error) {
+        console.error('[AuthContext] Sign up error:', error.message);
+        throw new Error(error.message);
+      }
+
+      if (!data?.user) {
+        throw new Error('No user data returned from sign up');
+      }
+
+      // The onAuthStateChange listener will handle setting the user
+      console.log('[AuthContext] Sign up successful:', data.user.email);
+      return data.user;
     } catch (error) {
-      console.error('Error in signUpWithEmail:', error);
+      console.error('[AuthContext] Error in signUpWithEmail:', error);
       throw error;
     }
   };

@@ -13,9 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { 
-  getDailyPlan, 
-  saveDailyPlan, 
+import {
+  getDailyPlan,
+  saveDailyPlan,
   generateDailyPlan,
   getUserPreferences,
   logStudySession,
@@ -73,9 +73,9 @@ export default function DailyPlanScreen({ navigation }) {
           onPress: async () => {
             setIsGenerating(true);
             const generatedPlan = await generateDailyPlan(topics);
-            const newPlan = { 
-              tasks: generatedPlan.tasks, 
-              completed: [], 
+            const newPlan = {
+              tasks: generatedPlan.tasks,
+              completed: [],
               notes: '',
               generatedAt: new Date().toISOString(),
             };
@@ -92,12 +92,12 @@ export default function DailyPlanScreen({ navigation }) {
   const toggleTaskComplete = async (taskId) => {
     const isCompleted = plan.completed?.includes(taskId);
     let newCompleted;
-    
+
     if (isCompleted) {
       newCompleted = plan.completed.filter(id => id !== taskId);
     } else {
       newCompleted = [...(plan.completed || []), taskId];
-      
+
       // Log study session for the task
       const task = plan.tasks.find(t => t.id === taskId);
       if (task && task.topicId) {
@@ -110,7 +110,7 @@ export default function DailyPlanScreen({ navigation }) {
         });
       }
     }
-    
+
     const newPlan = { ...plan, completed: newCompleted };
     await saveDailyPlan(selectedDate.toISOString().split('T')[0], newPlan);
     setPlan(newPlan);
@@ -119,13 +119,13 @@ export default function DailyPlanScreen({ navigation }) {
   const moveTask = async (taskId, direction) => {
     const taskIndex = plan.tasks.findIndex(t => t.id === taskId);
     if (taskIndex < 0) return;
-    
+
     const newIndex = direction === 'up' ? taskIndex - 1 : taskIndex + 1;
     if (newIndex < 0 || newIndex >= plan.tasks.length) return;
-    
+
     const newTasks = [...plan.tasks];
     [newTasks[taskIndex], newTasks[newIndex]] = [newTasks[newIndex], newTasks[taskIndex]];
-    
+
     const newPlan = { ...plan, tasks: newTasks };
     await saveDailyPlan(selectedDate.toISOString().split('T')[0], newPlan);
     setPlan(newPlan);
@@ -202,12 +202,15 @@ export default function DailyPlanScreen({ navigation }) {
           </TouchableOpacity>
           <Text style={[styles.title, { color: theme.colors.text }]}>Daily Plan</Text>
           <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Plan your study day effectively</Text>
+          <View style={styles.comingSoonBadge}>
+            <Text style={styles.comingSoonText}>Coming Soon</Text>
+          </View>
         </View>
 
         {/* Week Calendar */}
         <View style={styles.weekCalendar}>
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.weekContainer}
           >
@@ -262,7 +265,7 @@ export default function DailyPlanScreen({ navigation }) {
               <Text style={styles.progressPercentage}>{completionPercentage}%</Text>
             </View>
           </View>
-          
+
           <View style={styles.progressStats}>
             <View style={styles.progressStat}>
               <Text style={styles.progressStatValue}>{completedCount}/{totalTasks}</Text>
@@ -283,7 +286,7 @@ export default function DailyPlanScreen({ navigation }) {
 
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={handleGeneratePlan}
             disabled={isGenerating}
@@ -298,8 +301,8 @@ export default function DailyPlanScreen({ navigation }) {
               </Text>
             </LinearGradient>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={() => navigation.navigate('Roadmap')}
           >
@@ -318,7 +321,7 @@ export default function DailyPlanScreen({ navigation }) {
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
             <Ionicons name="clipboard" size={16} color={theme.colors.text} /> Today's Tasks
           </Text>
-          
+
           {plan.tasks?.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
               <Ionicons name="calendar-outline" size={48} color={theme.colors.textSecondary} />
@@ -331,7 +334,7 @@ export default function DailyPlanScreen({ navigation }) {
             plan.tasks?.map((task, index) => {
               const isCompleted = plan.completed?.includes(task.id);
               const typeColors = getTaskTypeColor(task.type);
-              
+
               return (
                 <View key={task.id} style={[styles.taskCard, { backgroundColor: theme.colors.surface }]}>
                   <TouchableOpacity
@@ -342,7 +345,7 @@ export default function DailyPlanScreen({ navigation }) {
                     <View style={[styles.taskCheckbox, { borderColor: theme.colors.border }, isCompleted && styles.taskCheckboxDone]}>
                       {isCompleted && <Text style={styles.taskCheckmark}>✓</Text>}
                     </View>
-                    
+
                     <View style={styles.taskContent}>
                       <View style={styles.taskHeader}>
                         <Text style={styles.taskTypeIcon}>{getTaskTypeIcon(task.type)}</Text>
@@ -353,7 +356,7 @@ export default function DailyPlanScreen({ navigation }) {
                         </View>
                         <Text style={[styles.taskHours, { color: theme.colors.textSecondary }]}>{task.estimatedHours}h</Text>
                       </View>
-                      
+
                       <Text style={[styles.taskName, { color: theme.colors.text }, isCompleted && { textDecorationLine: 'line-through', color: theme.colors.textSecondary }]}>
                         {task.topicName}
                       </Text>
@@ -362,23 +365,23 @@ export default function DailyPlanScreen({ navigation }) {
                       )}
                     </View>
                   </TouchableOpacity>
-                  
+
                   <View style={[styles.taskActions, { borderTopColor: theme.colors.border }]}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={[styles.taskActionButton, { borderRightColor: theme.colors.border }]}
                       onPress={() => moveTask(task.id, 'up')}
                       disabled={index === 0}
                     >
                       <Ionicons name="arrow-up" size={16} color={index === 0 ? theme.colors.textTertiary : theme.colors.primary} />
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={[styles.taskActionButton, { borderRightColor: theme.colors.border }]}
                       onPress={() => moveTask(task.id, 'down')}
                       disabled={index === plan.tasks.length - 1}
                     >
                       <Ionicons name="arrow-down" size={16} color={index === plan.tasks.length - 1 ? theme.colors.textTertiary : theme.colors.primary} />
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.taskActionButton}
                       onPress={() => removeTask(task.id)}
                     >
@@ -397,7 +400,7 @@ export default function DailyPlanScreen({ navigation }) {
             <Ionicons name="add-circle" size={16} color={theme.colors.text} /> Quick Add
           </Text>
           <View style={styles.quickAddRow}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.quickAddCard, { backgroundColor: theme.colors.surface }]}
               onPress={() => {
                 const newTask = {
@@ -416,8 +419,8 @@ export default function DailyPlanScreen({ navigation }) {
               <Ionicons name="newspaper" size={24} color={theme.colors.primary} />
               <Text style={[styles.quickAddText, { color: theme.colors.text }]}>Current Affairs</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={[styles.quickAddCard, { backgroundColor: theme.colors.surface }]}
               onPress={() => {
                 const newTask = {
@@ -436,8 +439,8 @@ export default function DailyPlanScreen({ navigation }) {
               <Ionicons name="refresh" size={24} color={theme.colors.primary} />
               <Text style={[styles.quickAddText, { color: theme.colors.text }]}>Revision</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={[styles.quickAddCard, { backgroundColor: theme.colors.surface }]}
               onPress={() => navigation.navigate('Config')}
             >
@@ -453,11 +456,11 @@ export default function DailyPlanScreen({ navigation }) {
             <Ionicons name="bulb" size={14} color={theme.colors.warning} /> Daily Tip
           </Text>
           <Text style={[styles.tipsText, { color: theme.colors.text }]}>
-            {preferences.availableHoursDaily >= 8 
+            {preferences.availableHoursDaily >= 8
               ? "You have a full study day planned! Take regular breaks every 45-50 minutes."
               : preferences.availableHoursDaily >= 4
-              ? "Focus on high-priority topics first when your energy is at its peak."
-              : "Quality over quantity! Make every study hour count with focused learning."
+                ? "Focus on high-priority topics first when your energy is at its peak."
+                : "Quality over quantity! Make every study hour count with focused learning."
             }
           </Text>
         </View>
@@ -495,6 +498,22 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#8E8E93',
     marginTop: 4,
+  },
+  comingSoonBadge: {
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+  },
+  comingSoonText: {
+    color: '#6366F1',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   weekCalendar: {
     marginBottom: 20,

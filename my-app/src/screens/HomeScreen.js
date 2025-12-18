@@ -46,14 +46,7 @@ export default function HomeScreen({ navigation }) {
     : 0;
 
   const mainFeatures = [
-    {
-      id: 'roadmap',
-      icon: 'map-outline',
-      title: 'Study Roadmap',
-      desc: 'Your complete syllabus',
-      gradient: ['#667eea', '#764ba2'],
-      screen: 'Roadmap',
-    },
+
     {
       id: 'articles',
       icon: 'newspaper-outline',
@@ -63,21 +56,22 @@ export default function HomeScreen({ navigation }) {
       screen: 'Articles',
     },
     {
-      id: 'daily',
-      icon: 'calendar-outline',
-      title: "Today's Plan",
-      desc: 'Daily study goals',
-      gradient: ['#11998e', '#38ef7d'],
-      screen: 'DailyPlan',
+      id: 'aimcq',
+      icon: 'create-outline',
+      title: 'MCQ Generator',
+      desc: 'Generate by topic',
+      gradient: ['#007AFF', '#0055D4'],
+      screen: 'AIMCQGenerator',
     },
     {
-      id: 'mcq',
-      icon: 'create-outline',
-      title: 'Generate MCQs',
-      desc: 'Create custom questions',
+      id: 'aimindmap',
+      icon: 'git-network-outline',
+      title: 'AI Mind Map',
+      desc: 'AI-powered diagrams',
       gradient: ['#007AFF', '#0055D4'],
-      screen: 'Config',
+      screen: 'AIMindMap',
     },
+
     {
       id: 'pdfmcq',
       icon: 'document-attach-outline',
@@ -86,14 +80,25 @@ export default function HomeScreen({ navigation }) {
       gradient: ['#FF2D55', '#FF375F'],
       screen: 'PDFMCQGenerator',
     },
+
     {
-      id: 'aimcq',
-      icon: 'sparkles-outline',
-      title: 'AI MCQ Generator',
-      desc: 'Generate by topic',
-      gradient: ['#FF9500', '#F5A623'],
-      screen: 'AIMCQGenerator',
+      id: 'essay',
+      icon: 'document-text-outline',
+      title: 'AI Essay Writing',
+      desc: 'Practice essay topics',
+      gradient: ['#FF9500', '#E68600'],
+      screen: 'Essay',
     },
+    {
+      id: 'mcq',
+      icon: 'sparkles-outline',
+      title: 'Generate MCQs',
+      desc: 'Create custom questions',
+      gradient: ['#007AFF', '#0055D4'],
+      screen: 'Config',
+    },
+
+
     {
       id: 'bank',
       icon: 'folder-outline',
@@ -102,22 +107,7 @@ export default function HomeScreen({ navigation }) {
       gradient: ['#5856D6', '#4845B5'],
       screen: 'QuestionBank',
     },
-    {
-      id: 'progress',
-      icon: 'stats-chart-outline',
-      title: 'Progress',
-      desc: 'Charts & analytics',
-      gradient: ['#34C759', '#28A745'],
-      screen: 'Progress',
-    },
-    {
-      id: 'essay',
-      icon: 'document-text-outline',
-      title: 'Essay Writing',
-      desc: 'Practice essay topics',
-      gradient: ['#FF9500', '#E68600'],
-      screen: 'Essay',
-    },
+
     {
       id: 'reference',
       icon: 'library-outline',
@@ -135,13 +125,14 @@ export default function HomeScreen({ navigation }) {
       screen: 'MindMap',
     },
     {
-      id: 'aimindmap',
-      icon: 'sparkles-outline',
-      title: 'AI Mind Map',
-      desc: 'AI-powered diagrams',
-      gradient: ['#EC4899', '#F472B6'],
-      screen: 'AIMindMap',
+      id: 'progress',
+      icon: 'stats-chart-outline',
+      title: 'Progress',
+      desc: 'Charts & analytics',
+      gradient: ['#34C759', '#28A745'],
+      screen: 'Progress',
     },
+
     {
       id: 'notes',
       icon: 'document-text-outline',
@@ -149,6 +140,22 @@ export default function HomeScreen({ navigation }) {
       desc: 'Create & organize notes',
       gradient: ['#6366F1', '#8B5CF6'],
       screen: 'Notes',
+    },
+    {
+      id: 'roadmap',
+      icon: 'map-outline',
+      title: 'Study Roadmap',
+      desc: 'Your complete syllabus',
+      gradient: ['#667eea', '#764ba2'],
+      screen: 'Roadmap',
+    },
+    {
+      id: 'daily',
+      icon: 'calendar-outline',
+      title: "Today's Plan",
+      desc: 'Daily study goals',
+      gradient: ['#11998e', '#38ef7d'],
+      screen: 'DailyPlan',
     },
   ];
 
@@ -195,22 +202,7 @@ export default function HomeScreen({ navigation }) {
         )}
 
         {/* Stats Card */}
-        <View style={[styles.statsCard, { backgroundColor: theme.colors.surface }]}>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: theme.colors.text }]}>{stats.totalTests}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Tests Taken</Text>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: theme.colors.border }]} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: theme.colors.text }]}>{avgScore}%</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Avg Score</Text>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: theme.colors.border }]} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: theme.colors.text }]}>{streak.currentStreak}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Streak 🔥</Text>
-          </View>
-        </View>
+
 
         {/* Main Features */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Start Learning</Text>

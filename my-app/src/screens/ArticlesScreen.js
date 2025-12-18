@@ -8,8 +8,10 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  Platform, // Added
   // TextInput, // Removed
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker'; // Added
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../features/Reference/theme/ThemeContext';
@@ -45,11 +47,28 @@ export default function ArticlesScreen({ navigation }) {
   const [selectedSubject, setSelectedSubject] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const handleDateChange = (event, date) => {
+    setShowDatePicker(false);
+    if (date) {
+      // Use the date object directly, but format it for the API query
+      // The API expects YYYY-MM-DD
+      const formattedDate = date.toISOString().split('T')[0];
+      setSelectedDate(formattedDate);
+    }
+  };
+
+  const clearDateFilter = () => {
+    setSelectedDate(null);
+  };
+
   const fetchArticles = useCallback(async (pageNum = 1, refresh = false) => {
     try {
       if (refresh) {
         setRefreshing(true);
-      } else if (pageNum === 1) {
+      } else {
         setLoading(true);
       }
 
@@ -60,6 +79,11 @@ export default function ArticlesScreen({ navigation }) {
       if (selectedSubject !== 'All') {
         url += `&subject=${encodeURIComponent(selectedSubject)}`;
       }
+      if (selectedDate) {
+        url += `&date=${encodeURIComponent(selectedDate)}`;
+      }
+
+      console.log('Fetching articles URL:', url);
 
       const response = await fetch(url);
       const data = await response.json();
@@ -79,12 +103,12 @@ export default function ArticlesScreen({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [selectedSource, selectedSubject]);
+  }, [selectedSource, selectedSubject, selectedDate]);
 
   useEffect(() => {
     setPage(1);
     fetchArticles(1);
-  }, [selectedSource, selectedSubject]);
+  }, [selectedSource, selectedSubject, selectedDate]);
 
   const handleRefresh = () => {
     setPage(1);
@@ -209,7 +233,7 @@ export default function ArticlesScreen({ navigation }) {
   );
 
   const renderFooter = () => {
-    if (!hasMore || loading) return null;
+    if (!hasMore || !loading) return null;
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color={theme.colors.primary} />
@@ -275,6 +299,76 @@ export default function ArticlesScreen({ navigation }) {
             </Text>
           </TouchableOpacity>
         ))}
+      </View>
+
+      {/* Date Filter - Dropdown Style */}
+      <View style={[styles.dateFilterContainer, { paddingHorizontal: horizontalPadding || 20 }]}>
+        <View style={styles.dateFilterRow}>
+          {Platform.OS === 'web' ? (
+            <View style={[styles.dateDropdownButton, { backgroundColor: theme.colors.surface, paddingVertical: 8 }]}>
+              <Ionicons name="calendar-outline" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
+              {React.createElement('input', {
+                type: 'date',
+                value: selectedDate || '',
+                onChange: (e) => {
+                  const dateStr = e.target.value;
+                  // e.target.value is YYYY-MM-DD
+                  if (dateStr) {
+                    setSelectedDate(dateStr);
+                  } else {
+                    setSelectedDate(null);
+                  }
+                },
+                style: {
+                  border: 'none',
+                  background: 'transparent',
+                  color: theme.colors.text,
+                  fontSize: 15,
+                  fontWeight: '500',
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  flex: 1,
+                  appearance: 'none', // Remove default web appearance if possible
+                  minWidth: 120, // Ensure it has width
+                  height: '100%',
+                },
+                placeholder: 'Select Date'
+              })}
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.dateDropdownButton, { backgroundColor: theme.colors.surface }]}
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="calendar-outline" size={20} color={theme.colors.primary} />
+              <Text style={[styles.dateDropdownText, { color: theme.colors.text }]}>
+                {selectedDate ? formatDate(selectedDate) : 'Select Date'}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color={theme.colors.textSecondary} />
+            </TouchableOpacity>
+          )}
+
+          {selectedDate && (
+            <TouchableOpacity
+              onPress={clearDateFilter}
+              style={[styles.clearDateButton, { backgroundColor: theme.colors.surface }]}
+            >
+              <Ionicons name="close-circle" size={20} color={theme.colors.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {Platform.OS !== 'web' && showDatePicker && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={selectedDate ? new Date(selectedDate) : new Date()}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleDateChange}
+            maximumDate={new Date()} // Cannot select future dates
+          />
+        )}
       </View>
 
       {/* Subject Filters */}
@@ -430,6 +524,44 @@ const styles = StyleSheet.create({
   filterChipText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  dateFilterContainer: {
+    paddingVertical: 8,
+  },
+  dateFilterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  dateDropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 10,
+    // flex: 1, // Removed to fix width
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  dateDropdownText: {
+    // flex: 1, // Removed
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  clearDateButton: {
+    padding: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   listContainer: {
     paddingTop: 8,

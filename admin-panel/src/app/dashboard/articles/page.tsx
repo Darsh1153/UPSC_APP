@@ -44,7 +44,7 @@ export default function ArticlesPage() {
     const [editingArticle, setEditingArticle] = useState<Article | null>(null);
     const [previewArticle, setPreviewArticle] = useState<FullArticle | null>(null);
     const [previewLoading, setPreviewLoading] = useState(false);
-    
+
     // Form state
     const [scrapeUrl, setScrapeUrl] = useState('');
     const [scrapeLoading, setScrapeLoading] = useState(false);
@@ -57,6 +57,7 @@ export default function ArticlesPage() {
         gsPaper: '',
         subject: '',
         tags: '',
+        publishedDate: new Date().toISOString().split('T')[0], // Default to today
         isPublished: true, // Default to published so articles appear in mobile app
         content: [] as any[],
     });
@@ -131,6 +132,7 @@ export default function ArticlesPage() {
                 gsPaper: '',
                 subject: '',
                 tags: '',
+                publishedDate: new Date().toISOString().split('T')[0],
                 isPublished: true, // Default to published so articles appear in mobile app
                 content: data.article.content || [],
             });
@@ -230,6 +232,7 @@ export default function ArticlesPage() {
                     gsPaper: fullArticle.gsPaper || '',
                     subject: fullArticle.subject || '',
                     tags: fullArticle.tags?.join(', ') || '',
+                    publishedDate: fullArticle.publishedDate ? new Date(fullArticle.publishedDate).toISOString().split('T')[0] : '',
                     isPublished: fullArticle.isPublished,
                     content: fullArticle.content || [],
                 });
@@ -273,11 +276,11 @@ export default function ArticlesPage() {
         switch (block.type) {
             case 'heading':
                 const HeadingTag = block.level === 1 ? 'h1' : block.level === 2 ? 'h2' : 'h3';
-                const headingClass = block.level === 1 
-                    ? 'text-2xl font-bold mt-8 mb-4' 
-                    : block.level === 2 
-                    ? 'text-xl font-semibold mt-6 mb-3' 
-                    : 'text-lg font-semibold mt-4 mb-2';
+                const headingClass = block.level === 1
+                    ? 'text-2xl font-bold mt-8 mb-4'
+                    : block.level === 2
+                        ? 'text-xl font-semibold mt-6 mb-3'
+                        : 'text-lg font-semibold mt-4 mb-2';
                 return (
                     <HeadingTag key={index} className={`${headingClass} text-gray-900`}>
                         {block.content}
@@ -328,6 +331,7 @@ export default function ArticlesPage() {
             gsPaper: '',
             subject: '',
             tags: '',
+            publishedDate: new Date().toISOString().split('T')[0],
             isPublished: true, // Default to published so articles appear in mobile app
             content: [],
         });
@@ -474,6 +478,15 @@ export default function ArticlesPage() {
                                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Published Date</label>
+                                <input
+                                    type="date"
+                                    value={formData.publishedDate}
+                                    onChange={(e) => setFormData({ ...formData, publishedDate: e.target.value })}
+                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -541,11 +554,10 @@ export default function ArticlesPage() {
                             </button>
                             <button
                                 onClick={() => handleTogglePublish(previewArticle.id)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                                    previewArticle.isPublished
-                                        ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                                        : 'bg-green-100 text-green-700 hover:bg-green-200'
-                                }`}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${previewArticle.isPublished
+                                    ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                    }`}
                             >
                                 {previewArticle.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                 {previewArticle.isPublished ? 'Unpublish' : 'Publish'}
@@ -566,9 +578,8 @@ export default function ArticlesPage() {
                             <div className="flex items-center gap-2 text-white/80 text-sm">
                                 <BookOpen className="w-4 h-4" />
                                 <span>Mobile App Preview</span>
-                                <span className={`ml-auto px-2 py-0.5 rounded text-xs font-medium ${
-                                    previewArticle.isPublished ? 'bg-green-500 text-white' : 'bg-yellow-500 text-black'
-                                }`}>
+                                <span className={`ml-auto px-2 py-0.5 rounded text-xs font-medium ${previewArticle.isPublished ? 'bg-green-500 text-white' : 'bg-yellow-500 text-black'
+                                    }`}>
                                     {previewArticle.isPublished ? 'Published' : 'Draft'}
                                 </span>
                             </div>
@@ -785,7 +796,7 @@ export default function ArticlesPage() {
                                 <tr key={article.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4">
                                         <div className="max-w-md">
-                                            <button 
+                                            <button
                                                 onClick={() => openPreview(article.id)}
                                                 className="font-medium text-gray-900 line-clamp-1 hover:text-blue-600 text-left transition-colors"
                                             >
@@ -815,11 +826,10 @@ export default function ArticlesPage() {
                                     <td className="px-6 py-4">
                                         <button
                                             onClick={() => handleTogglePublish(article.id)}
-                                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                                                article.isPublished
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-gray-100 text-gray-600'
-                                            }`}
+                                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${article.isPublished
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-gray-100 text-gray-600'
+                                                }`}
                                         >
                                             {article.isPublished ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                                             {article.isPublished ? 'Published' : 'Draft'}

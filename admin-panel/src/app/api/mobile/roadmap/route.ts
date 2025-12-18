@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
                     .where(eq(roadmapSources.topicId, topic.id))
                     .orderBy(asc(roadmapSources.order));
 
-                return { 
-                    ...topic, 
+                return {
+                    ...topic,
                     subtopics: subtopics.map(st => ({
                         id: st.subtopicId,
                         name: st.name,
@@ -58,11 +58,11 @@ export async function GET(request: NextRequest) {
         );
 
         return NextResponse.json({ topics: topicsWithRelations }, { headers: corsHeaders });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Get roadmap error:', error);
         console.error('Get roadmap error details:', error.message);
         console.error('Get roadmap error stack:', error.stack);
-        return NextResponse.json({ 
+        return NextResponse.json({
             error: 'Internal server error',
             details: process.env.NODE_ENV === 'development' ? error.message : undefined
         }, { status: 500, headers: corsHeaders });

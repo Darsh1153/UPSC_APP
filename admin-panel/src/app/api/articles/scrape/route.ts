@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
 
 // Simple HTML parser to extract content blocks
-function parseHtmlToBlocks(html: string): Array<{ type: string; content: string; [key: string]: any }> {
-    const blocks: Array<{ type: string; content: string; [key: string]: any }> = [];
-    
+function parseHtmlToBlocks(html: string): Array<{ type: string; content: string;[key: string]: any }> {
+    const blocks: Array<{ type: string; content: string;[key: string]: any }> = [];
+
     let cleanHtml = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
     cleanHtml = cleanHtml.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
-    
+
     // Extract headings
     const headingRegex = /<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/gi;
     let match;
@@ -18,7 +18,7 @@ function parseHtmlToBlocks(html: string): Array<{ type: string; content: string;
             blocks.push({ type: 'heading', level, content });
         }
     }
-    
+
     // Extract paragraphs
     const paragraphRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
     while ((match = paragraphRegex.exec(cleanHtml)) !== null) {
@@ -27,7 +27,7 @@ function parseHtmlToBlocks(html: string): Array<{ type: string; content: string;
             blocks.push({ type: 'paragraph', content });
         }
     }
-    
+
     // Extract lists
     const listRegex = /<(ul|ol)[^>]*>([\s\S]*?)<\/\1>/gi;
     while ((match = listRegex.exec(cleanHtml)) !== null) {
@@ -38,7 +38,7 @@ function parseHtmlToBlocks(html: string): Array<{ type: string; content: string;
             blocks.push({ type: listType === 'ol' ? 'ordered-list' : 'unordered-list', items, content: items.join(', ') });
         }
     }
-    
+
     // Extract blockquotes
     const blockquoteRegex = /<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi;
     while ((match = blockquoteRegex.exec(cleanHtml)) !== null) {
@@ -47,14 +47,14 @@ function parseHtmlToBlocks(html: string): Array<{ type: string; content: string;
             blocks.push({ type: 'quote', content });
         }
     }
-    
+
     return blocks;
 }
 
 // Extract main content from HTML
 function extractMainContent(html: string): string {
     let content = html;
-    
+
     const removePatterns = [
         /<nav\b[^>]*>[\s\S]*?<\/nav>/gi,
         /<header\b[^>]*>[\s\S]*?<\/header>/gi,
@@ -63,24 +63,24 @@ function extractMainContent(html: string): string {
         /<div[^>]*class="[^"]*(?:sidebar|advertisement|ads|comments|related|social|share)[^"]*"[^>]*>[\s\S]*?<\/div>/gi,
         /<!--[\s\S]*?-->/g,
     ];
-    
+
     for (const pattern of removePatterns) {
         content = content.replace(pattern, '');
     }
-    
+
     const articleMatch = content.match(/<article[^>]*>([\s\S]*?)<\/article>/i);
     if (articleMatch) return articleMatch[1];
-    
+
     const mainMatch = content.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
     if (mainMatch) return mainMatch[1];
-    
+
     return content;
 }
 
 // Extract all text content from content blocks for RAG
-function extractTextContent(contentBlocks: Array<{ type: string; content: string; [key: string]: any }>): string {
+function extractTextContent(contentBlocks: Array<{ type: string; content: string;[key: string]: any }>): string {
     const textParts: string[] = [];
-    
+
     for (const block of contentBlocks) {
         if (block.type === 'heading' && block.content) {
             textParts.push(block.content);
@@ -94,25 +94,30 @@ function extractTextContent(contentBlocks: Array<{ type: string; content: string
             textParts.push(block.content);
         }
     }
-    
+
     return textParts.join('\n\n');
 }
 
 // Call OpenRouter API to generate 15 bullet points
 async function generateParaphrasedSummary(articleText: string, title: string): Promise<string> {
-    const OPENROUTER_API_KEY = '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';
-    
+    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+
+    if (!OPENROUTER_API_KEY) {
+        console.error('OPENROUTER_API_KEY is not defined in environment variables');
+        return 'Error generating AI summary: API key missing';
+    }
+
     console.log('Calling OpenRouter API to generate paraphrased summary...');
     console.log('Article title:', title);
     console.log('Article text length:', articleText.length);
-    
+
     try {
         // Truncate article text if too long (OpenRouter has token limits)
         const maxTextLength = 8000; // Reasonable limit for context
-        const truncatedText = articleText.length > maxTextLength 
-            ? articleText.substring(0, maxTextLength) + '...' 
+        const truncatedText = articleText.length > maxTextLength
+            ? articleText.substring(0, maxTextLength) + '...'
             : articleText;
-        
+
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -157,7 +162,7 @@ Generate the 15 bullet points now:`
 
         const data = await response.json();
         console.log('OpenRouter API response received');
-        
+
         if (data.choices && data.choices[0] && data.choices[0].message) {
             const generatedText = data.choices[0].message.content.trim();
             console.log('Generated summary length:', generatedText.length);
@@ -201,7 +206,7 @@ export async function POST(request: NextRequest) {
         // Extract title
         const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
         let title = titleMatch ? titleMatch[1].trim() : '';
-        
+
         const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
         if (ogTitleMatch) title = ogTitleMatch[1];
 

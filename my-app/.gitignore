@@ -52,3 +52,4 @@ Library/
 **/Cache/
 **/Cache_Data/
 **/.cache/
+.vercel

@@ -47,72 +47,72 @@ const HISTORY_TYPES = [
 
 // ==================== DATA TYPES ====================
 const DATA_TYPES = [
-    { 
-        id: 'simpleList', 
-        name: 'Simple List', 
+    {
+        id: 'simpleList',
+        name: 'Simple List',
         description: 'A list of text items (e.g., Types of Inflation, Pollution Types)',
         icon: '📋',
         example: ['Item 1', 'Item 2', 'Item 3']
     },
-    { 
-        id: 'keyValue', 
-        name: 'Key-Value Definitions', 
+    {
+        id: 'keyValue',
+        name: 'Key-Value Definitions',
         description: 'Terms with definitions (e.g., GDP Definitions, Deficit Types)',
         icon: '📖',
         example: { 'Term 1': 'Definition 1', 'Term 2': 'Definition 2' }
     },
-    { 
-        id: 'plansList', 
-        name: 'Plans/Timeline List', 
+    {
+        id: 'plansList',
+        name: 'Plans/Timeline List',
         description: 'Items with name and focus/description (e.g., Five Year Plans)',
         icon: '📅',
         example: [{ plan: '1st Plan', focus: 'Agriculture' }]
     },
-    { 
-        id: 'missionsList', 
-        name: 'Missions/Projects', 
+    {
+        id: 'missionsList',
+        name: 'Missions/Projects',
         description: 'Projects with name, year, type, description (e.g., ISRO Missions)',
         icon: '🚀',
         example: [{ name: 'Mission 1', year: 2024, type: 'Satellite', description: 'Description' }]
     },
-    { 
-        id: 'scientistsList', 
-        name: 'People/Scientists', 
+    {
+        id: 'scientistsList',
+        name: 'People/Scientists',
         description: 'People with name, field, achievement (e.g., Indian Scientists)',
         icon: '👨‍🔬',
         example: [{ name: 'Name', field: 'Physics', achievement: 'Discovery' }]
     },
-    { 
-        id: 'technologyList', 
-        name: 'Technologies', 
+    {
+        id: 'technologyList',
+        name: 'Technologies',
         description: 'Technologies with name and description',
         icon: '💡',
         example: [{ name: 'AI', description: 'Artificial Intelligence' }]
     },
-    { 
-        id: 'nestedLists', 
-        name: 'Categorized Lists', 
+    {
+        id: 'nestedLists',
+        name: 'Categorized Lists',
         description: 'Multiple lists under categories (e.g., Physical Features, Rivers)',
         icon: '🗂️',
         example: { category1: ['item1', 'item2'], category2: ['item3'] }
     },
-    { 
-        id: 'hierarchyTree', 
-        name: 'Hierarchy/Structure', 
+    {
+        id: 'hierarchyTree',
+        name: 'Hierarchy/Structure',
         description: 'Nested structure with properties (e.g., Constitution, Government)',
         icon: '🏛️',
         example: { level1: { property: 'value', subItems: [] } }
     },
-    { 
-        id: 'vehiclesList', 
-        name: 'Vehicles/Equipment', 
+    {
+        id: 'vehiclesList',
+        name: 'Vehicles/Equipment',
         description: 'Items with fullName, stages, firstLaunch (e.g., Launch Vehicles)',
         icon: '🚗',
         example: { 'PSLV': { fullName: 'Polar...', stages: 4, firstLaunch: 1993 } }
     },
-    { 
-        id: 'missilesList', 
-        name: 'Defense/Missiles', 
+    {
+        id: 'missilesList',
+        name: 'Defense/Missiles',
         description: 'Missiles with name, type, range',
         icon: '🎯',
         example: { missiles: [{ name: 'Agni', type: 'Ballistic', range: '5000km' }] }
@@ -126,7 +126,7 @@ export default function ReferencesPage() {
     const [selectedCategory, setSelectedCategory] = useState('economy');
     const [referenceData, setReferenceData] = useState<any>({});
     const [showPreview, setShowPreview] = useState(true);
-    
+
     // Entry editing state
     const [editingEntry, setEditingEntry] = useState<ReferenceEntry | null>(null);
     const [entryForm, setEntryForm] = useState({
@@ -135,7 +135,7 @@ export default function ReferencesPage() {
         title: '',
         data: null as any,
     });
-    
+
     // Timeline state
     const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
     const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
@@ -322,12 +322,12 @@ export default function ReferencesPage() {
         try {
             const key = entryForm.key || formatTitleToKey(entryForm.title);
             const newData = { ...referenceData };
-            
+
             // If editing and key changed, remove old key
             if (editingEntry && editingEntry.key !== key) {
                 delete newData[editingEntry.key];
             }
-            
+
             newData[key] = entryForm.data;
             await saveReferenceData(newData);
             setViewMode('list');
@@ -396,7 +396,7 @@ export default function ReferencesPage() {
         );
     };
 
-    const PlansListEditor = ({ plans, onChange }: { plans: Array<{plan: string, focus: string}>, onChange: (p: any[]) => void }) => (
+    const PlansListEditor = ({ plans, onChange }: { plans: Array<{ plan: string, focus: string }>, onChange: (p: any[]) => void }) => (
         <div className="space-y-3">
             {plans.map((p, i) => (
                 <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -545,14 +545,14 @@ export default function ReferencesPage() {
     };
 
     // Recursive tree node component for hierarchy editing
-    const TreeNodeEditor = ({ 
-        nodeKey, 
-        nodeValue, 
-        path, 
-        onUpdate, 
-        onDelete, 
-        level = 0 
-    }: { 
+    const TreeNodeEditor = ({
+        nodeKey,
+        nodeValue,
+        path,
+        onUpdate,
+        onDelete,
+        level = 0
+    }: {
         nodeKey: string;
         nodeValue: any;
         path: string[];
@@ -564,11 +564,11 @@ export default function ReferencesPage() {
         const [isEditing, setIsEditing] = useState(false);
         const [editKey, setEditKey] = useState(nodeKey);
         const [editValue, setEditValue] = useState(typeof nodeValue === 'string' ? nodeValue : '');
-        
+
         const isObject = typeof nodeValue === 'object' && nodeValue !== null && !Array.isArray(nodeValue);
         const isArray = Array.isArray(nodeValue);
         const isPrimitive = !isObject && !isArray;
-        
+
         const levelColors = [
             'border-blue-400 bg-blue-50',
             'border-emerald-400 bg-emerald-50',
@@ -577,7 +577,7 @@ export default function ReferencesPage() {
             'border-pink-400 bg-pink-50',
         ];
         const colorClass = levelColors[level % levelColors.length];
-        
+
         const handleKeyChange = () => {
             if (editKey !== nodeKey) {
                 onUpdate(path.slice(0, -1), editKey, nodeValue);
@@ -585,12 +585,12 @@ export default function ReferencesPage() {
             }
             setIsEditing(false);
         };
-        
+
         const handleValueChange = () => {
             onUpdate(path.slice(0, -1), nodeKey, editValue);
             setIsEditing(false);
         };
-        
+
         const addChild = () => {
             const newKey = `newItem_${Date.now()}`;
             if (isObject) {
@@ -599,7 +599,7 @@ export default function ReferencesPage() {
                 onUpdate(path.slice(0, -1), nodeKey, [...nodeValue, 'New item']);
             }
         };
-        
+
         return (
             <div className={`border-l-4 ${colorClass} rounded-lg mb-2 overflow-hidden`}>
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/50">
@@ -609,12 +609,12 @@ export default function ReferencesPage() {
                         </button>
                     )}
                     {isPrimitive && <span className="w-4" />}
-                    
+
                     {isEditing ? (
                         <div className="flex-1 flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                value={editKey} 
+                            <input
+                                type="text"
+                                value={editKey}
                                 onChange={(e) => setEditKey(e.target.value)}
                                 className="px-2 py-1 border border-gray-300 rounded text-sm font-medium"
                                 placeholder="Key"
@@ -624,7 +624,7 @@ export default function ReferencesPage() {
                                     <span className="text-gray-400">:</span>
                                     <input
                                         type="text"
-                                        value={editValue} 
+                                        value={editValue}
                                         onChange={(e) => setEditValue(e.target.value)}
                                         className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
                                         placeholder="Value"
@@ -637,7 +637,7 @@ export default function ReferencesPage() {
                             <button onClick={() => setIsEditing(false)} className="p-1 text-gray-400 hover:text-gray-600">
                                 <X className="w-4 h-4" />
                             </button>
-                                </div>
+                        </div>
                     ) : (
                         <>
                             <span className="font-medium text-gray-800 text-sm">{nodeKey}</span>
@@ -649,7 +649,7 @@ export default function ReferencesPage() {
                             )}
                             {isArray && <span className="text-xs text-gray-400 ml-1">({nodeValue.length} items)</span>}
                             {isObject && <span className="text-xs text-gray-400 ml-1">({Object.keys(nodeValue).length} fields)</span>}
-                            
+
                             <div className="ml-auto flex items-center gap-1">
                                 <button onClick={() => { setIsEditing(true); setEditKey(nodeKey); setEditValue(typeof nodeValue === 'string' ? nodeValue : ''); }} className="p-1 text-gray-400 hover:text-blue-600" title="Edit">
                                     <Edit3 className="w-3 h-3" />
@@ -666,7 +666,7 @@ export default function ReferencesPage() {
                         </>
                     )}
                 </div>
-                
+
                 {isExpanded && isObject && (
                     <div className="pl-4 pr-2 py-2 bg-white/30">
                         {Object.entries(nodeValue).map(([key, val]) => (
@@ -683,16 +683,16 @@ export default function ReferencesPage() {
                         {Object.keys(nodeValue).length === 0 && (
                             <p className="text-xs text-gray-400 italic py-2">Empty object - click + to add fields</p>
                         )}
-                                </div>
+                    </div>
                 )}
-                
+
                 {isExpanded && isArray && (
                     <div className="pl-4 pr-2 py-2 bg-white/30">
                         {nodeValue.map((item: any, index: number) => (
                             <div key={index} className="flex items-center gap-2 mb-2">
                                 <span className="text-xs text-gray-400 w-6">{index + 1}.</span>
-                                    <input
-                                    type="text" 
+                                <input
+                                    type="text"
                                     value={typeof item === 'string' ? item : JSON.stringify(item)}
                                     onChange={(e) => {
                                         const newArr = [...nodeValue];
@@ -701,7 +701,7 @@ export default function ReferencesPage() {
                                     }}
                                     className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded"
                                 />
-                                <button 
+                                <button
                                     onClick={() => {
                                         const newArr = nodeValue.filter((_: any, i: number) => i !== index);
                                         onUpdate(path.slice(0, -1), nodeKey, newArr);
@@ -710,14 +710,14 @@ export default function ReferencesPage() {
                                 >
                                     <X className="w-3 h-3" />
                                 </button>
-                                </div>
+                            </div>
                         ))}
                         {nodeValue.length === 0 && (
                             <p className="text-xs text-gray-400 italic py-2">Empty array - click + to add items</p>
                         )}
-                            </div>
+                    </div>
                 )}
-                        </div>
+            </div>
         );
     };
 
@@ -730,7 +730,7 @@ export default function ReferencesPage() {
                 onChange(newData);
                 return;
             }
-            
+
             const newData = JSON.parse(JSON.stringify(data));
             let current = newData;
             for (let i = 0; i < path.length - 1; i++) {
@@ -742,10 +742,10 @@ export default function ReferencesPage() {
             }
             onChange(newData);
         };
-        
+
         const deleteNode = (path: string[]) => {
             if (path.length === 0) return;
-            
+
             const newData = JSON.parse(JSON.stringify(data));
             let current = newData;
             for (let i = 0; i < path.length - 1; i++) {
@@ -759,12 +759,12 @@ export default function ReferencesPage() {
             }
             onChange(newData);
         };
-        
+
         const addRootNode = () => {
             const newKey = `newSection_${Date.now()}`;
             onChange({ ...data, [newKey]: {} });
         };
-        
+
         return (
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -796,7 +796,7 @@ export default function ReferencesPage() {
     const renderEditor = () => {
         const { type, data } = entryForm;
         const setData = (newData: any) => setEntryForm({ ...entryForm, data: newData });
-        
+
         switch (type) {
             case 'simpleList': return <SimpleListEditor items={data || []} onChange={setData} />;
             case 'keyValue': return <KeyValueEditor data={data || {}} onChange={setData} />;
@@ -825,7 +825,7 @@ export default function ReferencesPage() {
                         <span className="text-[15px] font-semibold text-gray-900">{title || 'Preview'}</span>
                     </div>
                 </div>
-                
+
                 {/* Content */}
                 <div className="px-4 py-3 overflow-y-auto max-h-[500px] bg-white">
                     {renderMobileContent(type, data)}
@@ -854,18 +854,18 @@ export default function ReferencesPage() {
                         </div>
                         <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
                             {(data || []).slice(0, 6).map((item: string, i: number) => (
-                                <div 
-                                    key={i} 
+                                <div
+                                    key={i}
                                     className="flex-shrink-0 w-[200px] p-4 rounded-2xl border border-gray-200 bg-white flex flex-col items-center"
                                 >
-                                    <div 
+                                    <div
                                         className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-lg mb-3"
                                         style={{ background: `linear-gradient(135deg, ${getItemColor(i)}, ${getItemColor(i)}CC)` }}
                                     >
                                         {i + 1}
                                     </div>
                                     <span className="text-[13px] font-semibold text-gray-900 text-center leading-tight">{item || 'Item'}</span>
-                                    <span 
+                                    <span
                                         className="text-[11px] font-medium mt-2 px-3 py-1 rounded-full"
                                         style={{ backgroundColor: `${getItemColor(i)}15`, color: getItemColor(i) }}
                                     >
@@ -873,11 +873,11 @@ export default function ReferencesPage() {
                                     </span>
                                 </div>
                             ))}
-                                </div>
+                        </div>
                         {(data || []).length > 6 && <p className="text-xs text-gray-400 text-center">+{data.length - 6} more</p>}
-                                </div>
+                    </div>
                 );
-            
+
             case 'keyValue':
                 // Matches KeyValueSection - definitions with badges
                 return (
@@ -888,7 +888,7 @@ export default function ReferencesPage() {
                         </div>
                         {Object.entries(data || {}).slice(0, 5).map(([key, value], i) => (
                             <div key={i} className="flex items-start gap-3 p-3.5 bg-white border border-gray-200 rounded-[14px]">
-                                <div 
+                                <div
                                     className="px-3 py-1.5 rounded-lg text-[11px] font-bold flex-shrink-0"
                                     style={{ backgroundColor: '#10B98115', color: '#10B981' }}
                                 >
@@ -901,7 +901,7 @@ export default function ReferencesPage() {
                         ))}
                     </div>
                 );
-            
+
             case 'plansList':
                 // Matches PlansSection - horizontal scrolling plan cards
                 return (
@@ -913,11 +913,11 @@ export default function ReferencesPage() {
                         </div>
                         <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
                             {(data || []).slice(0, 8).map((p: any, i: number) => (
-                                <div 
-                                    key={i} 
+                                <div
+                                    key={i}
                                     className="flex-shrink-0 w-[140px] p-3.5 rounded-[14px] border border-gray-200 bg-white flex flex-col items-center"
                                 >
-                                    <div 
+                                    <div
                                         className="w-9 h-9 rounded-full flex items-center justify-center text-[16px] font-bold mb-2.5"
                                         style={{ backgroundColor: '#10B98115', color: '#10B981' }}
                                     >
@@ -930,7 +930,7 @@ export default function ReferencesPage() {
                         </div>
                     </div>
                 );
-            
+
             case 'missionsList':
                 // Matches MissionsSection
                 return (
@@ -943,7 +943,7 @@ export default function ReferencesPage() {
                             <div key={i} className="p-3.5 bg-white border border-gray-200 rounded-[14px]">
                                 <div className="flex justify-between items-center mb-1.5">
                                     <span className="text-[15px] font-semibold text-gray-900">{m.name}</span>
-                                    <span 
+                                    <span
                                         className="text-[12px] font-semibold px-2.5 py-1 rounded-lg"
                                         style={{ backgroundColor: '#10B98115', color: '#10B981' }}
                                     >
@@ -956,7 +956,7 @@ export default function ReferencesPage() {
                         ))}
                     </div>
                 );
-            
+
             case 'scientistsList':
                 // Matches PeopleSection
                 return (
@@ -967,7 +967,7 @@ export default function ReferencesPage() {
                         </div>
                         {(data || []).slice(0, 4).map((s: any, i: number) => (
                             <div key={i} className="flex items-center gap-3 p-3.5 bg-white border border-gray-200 rounded-[14px]">
-                                <div 
+                                <div
                                     className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold"
                                     style={{ backgroundColor: '#10B981' }}
                                 >
@@ -982,7 +982,7 @@ export default function ReferencesPage() {
                         ))}
                     </div>
                 );
-            
+
             case 'technologyList':
                 // Matches TechnologiesSection - grid layout
                 return (
@@ -1001,7 +1001,7 @@ export default function ReferencesPage() {
                         </div>
                     </div>
                 );
-            
+
             case 'nestedLists':
                 // Matches categorized lists
                 return (
@@ -1021,7 +1021,7 @@ export default function ReferencesPage() {
                         ))}
                     </div>
                 );
-            
+
             case 'vehiclesList':
                 return (
                     <div className="space-y-3">
@@ -1033,7 +1033,7 @@ export default function ReferencesPage() {
                             <div key={i} className="p-3.5 bg-white border border-gray-200 rounded-[14px]">
                                 <div className="flex justify-between items-center mb-2">
                                     <span className="font-bold text-gray-900">{key}</span>
-                                    <span 
+                                    <span
                                         className="text-[12px] font-semibold px-2.5 py-1 rounded-lg"
                                         style={{ backgroundColor: '#6366F115', color: '#6366F1' }}
                                     >
@@ -1046,7 +1046,7 @@ export default function ReferencesPage() {
                         ))}
                     </div>
                 );
-            
+
             case 'missilesList':
                 return (
                     <div className="space-y-3">
@@ -1065,7 +1065,7 @@ export default function ReferencesPage() {
                         ))}
                     </div>
                 );
-            
+
             default:
                 return (
                     <div className="bg-white border border-gray-200 rounded-[14px] p-3">
@@ -1128,7 +1128,7 @@ export default function ReferencesPage() {
                                     </select>
                                 </div>
                             </div>
-                            
+
                             {/* Type Description */}
                             {selectedType && (
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -1143,12 +1143,12 @@ export default function ReferencesPage() {
                             </div>
                         </div>
 
-                    {/* Actions */}
+                        {/* Actions */}
                         <div className="flex gap-3 mt-6">
                             <button onClick={() => { setViewMode('list'); setEditingEntry(null); }} className="flex-1 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">Cancel</button>
                             <button onClick={handleSaveEntry} disabled={saveLoading || !entryForm.title} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg disabled:opacity-50 flex items-center justify-center gap-2">
                                 <Save className="w-4 h-4" /> {saveLoading ? 'Saving...' : 'Save Entry'}
-                        </button>
+                            </button>
                         </div>
                     </div>
 
@@ -1161,7 +1161,7 @@ export default function ReferencesPage() {
                                 </h3>
                                 <button onClick={() => setShowPreview(!showPreview)} className="text-gray-400 hover:text-gray-600">
                                     {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
+                                </button>
                             </div>
                             {showPreview && <MobilePreview type={entryForm.type} data={entryForm.data} title={entryForm.title} />}
                         </div>
@@ -1287,57 +1287,58 @@ export default function ReferencesPage() {
                     </div>
                 )
             ) : entries.length === 0 ? (
-                    <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+                <div className="bg-white rounded-xl shadow-sm p-12 text-center">
                     <div className="text-6xl mb-4">📚</div>
                     <p className="text-gray-500 text-lg">No entries yet for {currentCat?.name}</p>
                     <p className="text-gray-400 text-sm mt-2">Click "Add Entry" to create your first reference data</p>
-                    </div>
-                ) : (
+                    <p className="text-xl font-semibold text-gray-800 mt-2">Coming Soon</p>
+                </div>
+            ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {entries.map(([key, data]) => {
                         const type = detectDataType(data);
                         const typeInfo = DATA_TYPES.find(t => t.id === type);
                         const itemCount = Array.isArray(data) ? data.length : typeof data === 'object' ? Object.keys(data || {}).length : 0;
-                        
+
                         return (
                             <div key={key} className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                                 <div className="p-4">
                                     <div className="flex items-start justify-between mb-2">
-                                    <div>
+                                        <div>
                                             <h3 className="font-semibold text-gray-900">{formatKeyToTitle(key)}</h3>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="text-lg">{typeInfo?.icon || '📄'}</span>
                                                 <span className="text-xs text-gray-500">{typeInfo?.name || 'Data'}</span>
                                                 <span className="text-xs text-gray-400">• {itemCount} items</span>
-                                    </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    
+
                                     {/* Mini Preview */}
                                     <div className="mt-3 p-2 bg-gray-50 rounded-lg h-20 overflow-hidden">
                                         {renderMiniPreview(type, data)}
                                     </div>
                                 </div>
-                                
+
                                 <div className="px-4 py-3 bg-gray-50 border-t flex justify-end gap-2">
                                     <button onClick={() => openEditEntry(key, data)} className="flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg">
                                         <Edit2 className="w-3.5 h-3.5" /> Edit
-                                        </button>
+                                    </button>
                                     <button onClick={() => handleDeleteEntry(key)} className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg">
                                         <Trash2 className="w-3.5 h-3.5" /> Delete
-                                        </button>
-                                    </div>
+                                    </button>
                                 </div>
+                            </div>
                         );
                     })}
-                                </div>
+                </div>
             )}
-                            </div>
+        </div>
     );
 
     function renderMiniPreview(type: string, data: any) {
         if (!data) return null;
-        
+
         switch (type) {
             case 'simpleList':
                 return (
@@ -1354,8 +1355,8 @@ export default function ReferencesPage() {
                         {Object.keys(data || {}).slice(0, 2).map((key, i) => (
                             <div key={i} className="truncate"><span className="font-medium">{key}:</span> {String(data[key]).slice(0, 30)}...</div>
                         ))}
-        </div>
-    );
+                    </div>
+                );
             default:
                 return <div className="text-xs text-gray-400">Preview available in editor</div>;
         }

@@ -5,7 +5,8 @@
  */
 
 // OpenRouter API Key - Used for all AI operations
-export const OPENROUTER_API_KEY = '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';
+// Get your API key from https://openrouter.ai/keys
+export const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '';
 export const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // Site metadata for OpenRouter

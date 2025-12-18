@@ -6,7 +6,8 @@ import { verifyAuth } from '@/lib/auth';
 import { logActivity } from '@/lib/activity';
 
 // Categories for visual references
-export const REFERENCE_CATEGORIES = [
+// Categories for visual references
+const REFERENCE_CATEGORIES = [
     'polity',
     'economy',
     'geography',
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
                 .from(visualReferences)
                 .where(eq(visualReferences.category, category))
                 .orderBy(asc(visualReferences.order));
-            
+
             // If we have references for this category, return the data directly
             // The data is stored as a single JSON blob per category
             if (references.length > 0) {
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
             .select()
             .from(visualReferences)
             .where(eq(visualReferences.category, category));
-        
+
         if (existing.length > 0) {
             // Update existing reference
             const [updated] = await db

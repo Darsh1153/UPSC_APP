@@ -454,7 +454,7 @@ async function seedDatabase() {
                     title: item.title,
                     data: item.data,
                     order: refCategory.items.indexOf(item),
-                }).onConflictDoNothing();
+                } as any).onConflictDoNothing();
             }
             console.log(`  ✓ ${refCategory.category}`);
         }

@@ -22,7 +22,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 
 import { useTheme } from '../../Reference/theme/ThemeContext';
-import MermaidCanvas from '../components/MermaidCanvas';
+import MermaidCanvas, { RenderType } from '../components/MermaidCanvas';
 import {
   AIMindMap,
   ChatMessage,
@@ -71,6 +71,7 @@ const AIMindMapScreen: React.FC<AIMindMapScreenProps> = ({ navigation, route }) 
   const [inputText, setInputText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
+  const [renderType, setRenderType] = useState<RenderType>('mindmap');
 
   // Load or create mind map
   useEffect(() => {
@@ -276,10 +277,33 @@ const AIMindMapScreen: React.FC<AIMindMapScreenProps> = ({ navigation, route }) 
 
     return (
       <View style={styles.canvasContainer}>
+        {/* Render Type Toggle */}
+        <View style={[styles.renderTypeToggle, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
+          <TouchableOpacity
+            style={[styles.renderTypeBtn, renderType === 'mindmap' && { backgroundColor: colors.primary }]}
+            onPress={() => setRenderType('mindmap')}
+          >
+            <MaterialCommunityIcons name="graph" size={16} color={renderType === 'mindmap' ? '#FFF' : colors.textSecondary} />
+            <Text style={[styles.renderTypeBtnText, { color: renderType === 'mindmap' ? '#FFF' : colors.textSecondary }]}>
+              Mind Map
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.renderTypeBtn, renderType === 'flowchart' && { backgroundColor: colors.primary }]}
+            onPress={() => setRenderType('flowchart')}
+          >
+            <MaterialCommunityIcons name="sitemap" size={16} color={renderType === 'flowchart' ? '#FFF' : colors.textSecondary} />
+            <Text style={[styles.renderTypeBtnText, { color: renderType === 'flowchart' ? '#FFF' : colors.textSecondary }]}>
+              Flowchart
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <MermaidCanvas
           code={mermaidCode}
           isDark={isDark}
           colors={colors}
+          renderType={renderType}
         />
 
         {/* Floating Chat Button */}
@@ -622,6 +646,27 @@ const styles = StyleSheet.create({
   // Canvas styles
   canvasContainer: {
     flex: 1,
+  },
+  renderTypeToggle: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    marginVertical: 12,
+    borderRadius: 12,
+    padding: 4,
+    borderWidth: 1,
+    gap: 4,
+  },
+  renderTypeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    gap: 6,
+  },
+  renderTypeBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   canvasEmpty: {
     flex: 1,

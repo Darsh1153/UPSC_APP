@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { articles } from '@/lib/db/schema';
-import { eq, desc, count, and } from 'drizzle-orm';
+import { eq, desc, count, and, gte, lte } from 'drizzle-orm';
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -45,7 +45,25 @@ export async function GET(request: NextRequest) {
             conditions.push(eq(articles.subject, subject));
         }
 
-        const whereClause = and(...conditions);
+        const dateParam = searchParams.get('date');
+        if (dateParam) {
+            // Filter by specific date (ignoring time)
+            const startDate = new Date(dateParam);
+            startDate.setHours(0, 0, 0, 0);
+
+            const endDate = new Date(dateParam);
+            endDate.setHours(23, 59, 59, 999);
+
+            const dateCondition = and(
+                gte(articles.publishedDate, startDate),
+                lte(articles.publishedDate, endDate)
+            );
+            if (dateCondition) {
+                conditions.push(dateCondition);
+            }
+        }
+
+        const whereClause = and(...conditions)!;
 
         const publishedArticles = await db
             .select({

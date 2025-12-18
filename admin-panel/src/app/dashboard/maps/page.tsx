@@ -20,12 +20,12 @@ export default function MapsPage() {
     const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editingMap, setEditingMap] = useState<MapItem | null>(null);
-    const [formData, setFormData] = useState({ 
-        title: '', 
-        description: '', 
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
         category: '',
         tags: '',
-        isPublished: true 
+        isPublished: true
     });
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>('');
@@ -88,7 +88,7 @@ export default function MapsPage() {
     const handleSave = async () => {
         if (!formData.title || !formData.category) return;
         if (!editingMap && !selectedFile) return;
-        
+
         setSaveLoading(true);
         const token = localStorage.getItem('sb-access-token');
 
@@ -188,6 +188,7 @@ export default function MapsPage() {
                     <div className="col-span-full text-center py-12">
                         <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                         <p className="text-gray-500">No maps found</p>
+                        <p className="text-xl font-semibold text-gray-800 mt-2">Coming Soon</p>
                     </div>
                 ) : (
                     maps.map((map) => (
@@ -216,9 +217,8 @@ export default function MapsPage() {
                                 </div>
                                 <button
                                     onClick={() => handleTogglePublish(map.id)}
-                                    className={`absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                                        map.isPublished ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                                    }`}
+                                    className={`absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${map.isPublished ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                                        }`}
                                 >
                                     {map.isPublished ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                                     {map.isPublished ? 'Published' : 'Draft'}

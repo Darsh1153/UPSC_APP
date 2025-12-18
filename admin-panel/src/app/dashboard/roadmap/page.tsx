@@ -499,6 +499,7 @@ export default function RoadmapPage() {
                 <div className="bg-white rounded-xl shadow-sm p-12 text-center">
                     <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <p className="text-gray-500">No topics found</p>
+                    <p className="text-xl font-semibold text-gray-800 mt-2">Coming Soon</p>
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -523,18 +524,16 @@ export default function RoadmapPage() {
                                                             <Clock className="w-3.5 h-3.5" />
                                                             {topic.estimatedHours}h
                                                         </span>
-                                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                                            topic.difficulty === 'Advanced' ? 'bg-red-100 text-red-700' :
-                                                            topic.difficulty === 'Moderate' ? 'bg-yellow-100 text-yellow-700' :
-                                                            'bg-green-100 text-green-700'
-                                                        }`}>
+                                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${topic.difficulty === 'Advanced' ? 'bg-red-100 text-red-700' :
+                                                                topic.difficulty === 'Moderate' ? 'bg-yellow-100 text-yellow-700' :
+                                                                    'bg-green-100 text-green-700'
+                                                            }`}>
                                                             {topic.difficulty}
                                                         </span>
-                                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                                            topic.priority === 'High' ? 'bg-purple-100 text-purple-700' :
-                                                            topic.priority === 'Medium' ? 'bg-blue-100 text-blue-700' :
-                                                            'bg-gray-100 text-gray-700'
-                                                        }`}>
+                                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${topic.priority === 'High' ? 'bg-purple-100 text-purple-700' :
+                                                                topic.priority === 'Medium' ? 'bg-blue-100 text-blue-700' :
+                                                                    'bg-gray-100 text-gray-700'
+                                                            }`}>
                                                             {topic.priority}
                                                         </span>
                                                         {topic.subtopics && (

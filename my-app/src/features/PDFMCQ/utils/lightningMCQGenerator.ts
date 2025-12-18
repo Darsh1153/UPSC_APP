@@ -340,12 +340,111 @@ function parseQuestionSection(section: string): MCQ | null {
  * MAIN FUNCTION: Process PDF and generate MCQs in under 1 minute
  * Uses OCR + Gemini Flash
  */
+import { API_BASE_URL } from '../../../config/api';
+
+/**
+ * Attempt to generate MCQs using the fast backend API (Native PDF parsing)
+ */
+async function attemptBackendGeneration(
+    fileUri: string,
+    fileName: string,
+    onStatus?: StatusCallback
+): Promise<ProcessingResult | null> {
+    try {
+        onStatus?.({
+            stage: 'reading',
+            progress: 10,
+            message: '🚀 Uploading to fast server...',
+            startTime: Date.now(),
+        });
+
+        // Create FormData
+        const formData = new FormData();
+        formData.append('file', {
+            uri: fileUri,
+            name: fileName,
+            type: 'application/pdf',
+        } as any);
+        formData.append('numQuestions', '10');
+        formData.append('difficulty', 'pro');
+
+        const startTime = Date.now();
+        const response = await fetch(`${API_BASE_URL}/generate-mcq-from-pdf`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                // 'Content-Type': 'multipart/form-data', // Do NOT set this manually, let fetch handle it with boundary
+            },
+        });
+
+        if (response.status === 422) {
+            // Scanned PDF, fallback to OCR
+            console.log('Backend returned 422 (Scanned PDF), falling back to OCR');
+            return null;
+        }
+
+        if (!response.ok) {
+            throw new Error(`Server Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.questions) throw new Error('Invalid response from server');
+
+        // Map response
+        const mcqs: MCQ[] = data.questions.map((q: any) => ({
+            question: q.question,
+            optionA: q.options[0].text,
+            optionB: q.options[1].text,
+            optionC: q.options[2].text,
+            optionD: q.options[3].text,
+            correctAnswer: q.options.find((o: any) => o.isCorrect) ? (['A', 'B', 'C', 'D'][q.options.findIndex((o: any) => o.isCorrect)]) : 'A',
+            explanation: q.explanation
+        }));
+
+        const processingTimeMs = Date.now() - startTime;
+
+        onStatus?.({
+            stage: 'complete',
+            progress: 100,
+            message: `✅ Generated ${mcqs.length} MCQs in ${(processingTimeMs / 1000).toFixed(1)}s`,
+            startTime,
+        });
+
+        return {
+            success: true,
+            mcqs,
+            fileName,
+            processingTimeMs,
+            textLength: 1000,
+        };
+
+    } catch (e: any) {
+        console.warn('Backend generation failed, falling back to client OCR:', e);
+        return null;
+    }
+}
+
+/**
+ * MAIN FUNCTION: Process PDF and generate MCQs
+ * Tries Fast Backend First -> Falls back to Client OCR
+ */
 export async function processAndGenerateMCQs(
     fileUri: string,
     fileName: string,
     mimeType: string = 'application/pdf',
     onStatus?: StatusCallback
 ): Promise<ProcessingResult> {
+
+    // 1. Try Fast Backend
+    if (mimeType === 'application/pdf') {
+        const fastResult = await attemptBackendGeneration(fileUri, fileName, onStatus);
+        if (fastResult) {
+            return fastResult;
+        }
+    }
+
+    // 2. Fallback to Original OCR Method
     const startTime = Date.now();
 
     try {
@@ -353,7 +452,7 @@ export async function processAndGenerateMCQs(
         onStatus?.({
             stage: 'reading',
             progress: 5,
-            message: '📄 Reading file...',
+            message: '📄 Reading file (OCR Fallback)...',
             startTime,
         });
 
@@ -381,7 +480,7 @@ export async function processAndGenerateMCQs(
 
         const extractedText = await withTimeout(
             extractTextWithOCR(base64Data, mimeType, onStatus),
-            30000,
+            60000, // Increased timeout for OCR
             'Text extraction timed out'
         );
 
@@ -401,7 +500,7 @@ export async function processAndGenerateMCQs(
         // Stage 3: Generate MCQs with AI
         const mcqs = await withTimeout(
             generateMCQsFast(extractedText, 10, onStatus),
-            50000,
+            60000,
             'MCQ generation timed out'
         );
 

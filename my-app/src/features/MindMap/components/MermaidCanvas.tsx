@@ -12,19 +12,99 @@ import {
   Text,
 } from 'react-native';
 
+export type RenderType = 'mindmap' | 'flowchart';
+
 interface MermaidCanvasProps {
   code: string;
   isDark: boolean;
   colors: any;
+  renderType?: RenderType;
 }
 
-const MermaidCanvas: React.FC<MermaidCanvasProps> = ({ code, isDark, colors }) => {
+// Convert mindmap mermaid code to flowchart format
+const convertToFlowchart = (code: string): string => {
+  // Check if it's already a flowchart
+  if (code.trim().startsWith('flowchart') || code.trim().startsWith('graph')) {
+    return code;
+  }
+
+  // Check if it's a mindmap
+  if (!code.trim().startsWith('mindmap')) {
+    return code; // Return as is for other diagram types
+  }
+
+  try {
+    const lines = code.split('\n');
+    const nodes: { id: string; label: string; level: number; parentId: string | null }[] = [];
+    let nodeCounter = 0;
+    const levelStack: { level: number; id: string }[] = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line.trim()) continue;
+
+      // Count leading spaces/tabs to determine level
+      const match = line.match(/^(\s*)/);
+      const indent = match ? match[1].length : 0;
+      const level = Math.floor(indent / 2);
+
+      // Extract label (remove special chars used in mindmap)
+      let label = line.trim()
+        .replace(/^\(\(/, '').replace(/\)\)$/, '')  // (( ))
+        .replace(/^\(/, '').replace(/\)$/, '')      // ( )
+        .replace(/^\[/, '').replace(/\]$/, '')      // [ ]
+        .replace(/^\{/, '').replace(/\}$/, '')      // { }
+        .replace(/^{{/, '').replace(/}}$/, '');     // {{ }}
+
+      if (!label) continue;
+
+      const nodeId = `node${nodeCounter++}`;
+
+      // Find parent
+      while (levelStack.length > 0 && levelStack[levelStack.length - 1].level >= level) {
+        levelStack.pop();
+      }
+
+      const parentId = levelStack.length > 0 ? levelStack[levelStack.length - 1].id : null;
+
+      nodes.push({ id: nodeId, label, level, parentId });
+      levelStack.push({ level, id: nodeId });
+    }
+
+    // Generate flowchart
+    let flowchart = 'flowchart TD\n';
+
+    // Add node definitions
+    nodes.forEach(node => {
+      flowchart += `    ${node.id}["${node.label}"]\n`;
+    });
+
+    flowchart += '\n';
+
+    // Add edges
+    nodes.forEach(node => {
+      if (node.parentId) {
+        flowchart += `    ${node.parentId} --> ${node.id}\n`;
+      }
+    });
+
+    return flowchart;
+  } catch (e) {
+    console.error('Failed to convert to flowchart:', e);
+    return code;
+  }
+};
+
+const MermaidCanvas: React.FC<MermaidCanvasProps> = ({ code, isDark, colors, renderType = 'mindmap' }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const bgColor = isDark ? '#0f172a' : '#ffffff';
   const textColor = isDark ? '#e2e8f0' : '#1e293b';
+
+  // Convert code based on render type
+  const displayCode = renderType === 'flowchart' ? convertToFlowchart(code) : code;
 
   const html = `
 <!DOCTYPE html>
@@ -85,7 +165,7 @@ const MermaidCanvas: React.FC<MermaidCanvasProps> = ({ code, isDark, colors }) =
     
     async function render() {
       try {
-        const code = ${JSON.stringify(code)};
+        const code = ${JSON.stringify(displayCode)};
         if (!code) {
           document.getElementById('diagram').innerHTML = '<p class="loading">No diagram to display</p>';
           return;
@@ -154,7 +234,7 @@ const MermaidCanvas: React.FC<MermaidCanvasProps> = ({ code, isDark, colors }) =
 
   // For mobile, use WebView (imported dynamically to avoid web errors)
   const WebView = require('react-native-webview').WebView;
-  
+
   return (
     <View style={styles.container}>
       <WebView

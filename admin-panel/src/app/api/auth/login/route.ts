@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
         }
 
         console.log('Verifying credentials for:', email);
-        
+
         // Sign in with Supabase to get session
         const supabase = createServerClient();
         let { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
@@ -25,17 +25,18 @@ export async function POST(request: NextRequest) {
         // If email is not confirmed, auto-confirm it using service role
         if (sessionError && (sessionError.message?.includes('Email not confirmed') || sessionError.message?.includes('not been confirmed'))) {
             console.log('Email not confirmed, auto-confirming...');
-            
+
             // Get the user first
-            const { data: { user }, error: getUserError } = await supabase.auth.admin.getUserByEmail(email);
-            
+            const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers();
+            const user = users?.find(u => u.email === email);
+
             if (!getUserError && user && !user.email_confirmed_at) {
                 // Auto-confirm the email using admin API
                 const { error: confirmError } = await supabase.auth.admin.updateUserById(
                     user.id,
                     { email_confirm: true }
                 );
-                
+
                 if (confirmError) {
                     console.error('Error confirming email:', confirmError);
                 } else {
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
                         email,
                         password,
                     });
-                    
+
                     if (!retryResult.error && retryResult.data?.session && retryResult.data?.user) {
                         sessionData = retryResult.data;
                         sessionError = null;
@@ -73,10 +74,10 @@ export async function POST(request: NextRequest) {
         };
 
         // Create response with user data and token
-        const response = NextResponse.json({ 
+        const response = NextResponse.json({
             token: sessionData.session.access_token,
             refreshToken: sessionData.session.refresh_token,
-            user 
+            user
         });
 
         // Set cookies for session management

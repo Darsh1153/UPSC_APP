@@ -5,6 +5,11 @@
 // OpenRouter API Configuration
 // Get your API key from https://openrouter.ai/keys
 const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '';
+
+// Debug: Log API key status (not the full key for security)
+console.log('[OpenRouter] API Key configured:', OPENROUTER_API_KEY ? `Yes (${OPENROUTER_API_KEY.substring(0, 10)}...)` : 'No');
+console.log('[OpenRouter] API Key length:', OPENROUTER_API_KEY.length);
+
 const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'google/gemini-3-pro-preview'; // Gemini 3 Pro with reasoning
 
@@ -79,18 +84,18 @@ const extractMermaidCode = (content: string): string => {
   if (mermaidMatch) {
     return mermaidMatch[1].trim();
   }
-  
+
   // Try to find code block without language
   const codeMatch = content.match(/```\n?([\s\S]*?)```/);
   if (codeMatch && codeMatch[1].trim().startsWith('mindmap')) {
     return codeMatch[1].trim();
   }
-  
+
   // Check if content itself is mermaid code
   if (content.trim().startsWith('mindmap')) {
     return content.trim();
   }
-  
+
   return '';
 };
 
@@ -129,7 +134,16 @@ export const generateMindMap = async (
 
   messages.push({ role: 'user', content: userContent });
 
+  // Debug: Log what we're about to send
+  console.log('[OpenRouter] Preparing request...');
+  console.log('[OpenRouter] API Key present:', !!OPENROUTER_API_KEY);
+  console.log('[OpenRouter] API Key first 15 chars:', OPENROUTER_API_KEY.substring(0, 15));
+  console.log('[OpenRouter] Model:', MODEL);
+  console.log('[OpenRouter] Message count:', messages.length);
+
   try {
+    console.log('[OpenRouter] Sending request to:', API_URL);
+
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
@@ -151,21 +165,33 @@ export const generateMindMap = async (
       }),
     });
 
+    console.log('[OpenRouter] Response status:', response.status);
+    console.log('[OpenRouter] Response ok:', response.ok);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('OpenRouter API error:', errorData);
+      console.error('[OpenRouter] API error response:', JSON.stringify(errorData, null, 2));
+      console.error('[OpenRouter] Error status:', response.status);
+      console.error('[OpenRouter] Error message:', errorData.error?.message);
       throw new Error(errorData.error?.message || `API request failed with status ${response.status}`);
     }
 
     const data = await response.json();
+    console.log('[OpenRouter] Response received successfully');
+    console.log('[OpenRouter] Response has choices:', !!data.choices);
+    console.log('[OpenRouter] Choices count:', data.choices?.length);
+
     const assistantMessage = data.choices?.[0]?.message;
 
     if (!assistantMessage) {
+      console.error('[OpenRouter] No assistant message in response');
       throw new Error('No response from AI');
     }
 
+    console.log('[OpenRouter] Assistant message received');
     const content = assistantMessage.content || '';
     const mermaidCode = extractMermaidCode(content);
+    console.log('[OpenRouter] Mermaid code extracted:', !!mermaidCode);
 
     return {
       content,
@@ -173,7 +199,8 @@ export const generateMindMap = async (
       reasoning_details: assistantMessage.reasoning_details,
     };
   } catch (error) {
-    console.error('Failed to generate mind map:', error);
+    console.error('[OpenRouter] Request failed:', error);
+    console.error('[OpenRouter] Error details:', error instanceof Error ? error.message : String(error));
     throw error;
   }
 };

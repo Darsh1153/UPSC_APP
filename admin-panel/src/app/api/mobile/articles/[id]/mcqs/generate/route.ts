@@ -9,12 +9,16 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+
+if (!OPENROUTER_API_KEY) {
+    console.error('OPENROUTER_API_KEY is not defined in environment variables');
+}
 
 // Extract text content from article for RAG
-function extractTextContent(contentBlocks: Array<{ type: string; content: string; [key: string]: any }>): string {
+function extractTextContent(contentBlocks: Array<{ type: string; content: string;[key: string]: any }>): string {
     const textParts: string[] = [];
-    
+
     for (const block of contentBlocks) {
         if (block.type === 'heading' && block.content) {
             textParts.push(block.content);
@@ -28,7 +32,7 @@ function extractTextContent(contentBlocks: Array<{ type: string; content: string
             textParts.push(block.content);
         }
     }
-    
+
     return textParts.join('\n\n');
 }
 
@@ -44,7 +48,7 @@ function parseMCQs(aiResponse: string): Array<{
 }> {
     console.log('[parseMCQs] Starting to parse MCQs from AI response');
     console.log('[parseMCQs] Response length:', aiResponse?.length || 0);
-    
+
     // Validate input
     if (!aiResponse || typeof aiResponse !== 'string') {
         console.error('[parseMCQs] Invalid AI response:', typeof aiResponse);
@@ -64,7 +68,7 @@ function parseMCQs(aiResponse: string): Array<{
     // Split by questions
     const sections = aiResponse.split(/(?:Question\s*\d+|^\d+\.)/m);
     console.log('[parseMCQs] Split into', sections.length, 'sections');
-    
+
     for (const section of sections) {
         if (!section || typeof section !== 'string' || !section.trim()) continue;
 
@@ -117,16 +121,17 @@ function parseMCQs(aiResponse: string): Array<{
                 .replace(/\*\*/g, '') // Remove markdown bold markers
                 .replace(/\*/g, '') // Remove single asterisks
                 .replace(/^Question\s*\d+:\s*/i, '') // Remove "Question 1:" prefix if present
+                .replace(/^:\s*/, '') // Remove leading colon if present
                 .trim();
-            
-            const cleanOptionA = (currentOptions.A || '').replace(/:\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').trim();
-            const cleanOptionB = (currentOptions.B || '').replace(/:\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').trim();
-            const cleanOptionC = (currentOptions.C || '').replace(/:\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').trim();
-            const cleanOptionD = (currentOptions.D || '').replace(/:\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').trim();
-            const cleanExplanation = currentExplanation 
+
+            const cleanOptionA = (currentOptions.A || '').replace(/:\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/^:\s*/, '').trim();
+            const cleanOptionB = (currentOptions.B || '').replace(/:\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/^:\s*/, '').trim();
+            const cleanOptionC = (currentOptions.C || '').replace(/:\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/^:\s*/, '').trim();
+            const cleanOptionD = (currentOptions.D || '').replace(/:\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/^:\s*/, '').trim();
+            const cleanExplanation = currentExplanation
                 ? currentExplanation.replace(/:\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').trim()
                 : undefined;
-            
+
             if (cleanQuestion && cleanOptionA && cleanOptionB && cleanOptionC && cleanOptionD) {
                 mcqs.push({
                     question: cleanQuestion,
@@ -159,7 +164,7 @@ function parseMCQs(aiResponse: string): Array<{
                         correctAnswer: (item.correctAnswer || item.correct || item.answer || 'A').toString().toUpperCase().trim(),
                         explanation: item.explanation || item.exp || undefined,
                     })).filter((mcq: any) => mcq.question && mcq.optionA && mcq.optionB && mcq.optionC && mcq.optionD);
-                    
+
                     console.log('[parseMCQs] Parsed', jsonMCQs.length, 'MCQs from JSON format');
                     return jsonMCQs;
                 }
@@ -190,8 +195,8 @@ async function generateMCQs(articleText: string, title: string, summary: string)
     try {
         // Truncate article text if too long
         const maxTextLength = 8000;
-        const truncatedText = articleText.length > maxTextLength 
-            ? articleText.substring(0, maxTextLength) + '...' 
+        const truncatedText = articleText.length > maxTextLength
+            ? articleText.substring(0, maxTextLength) + '...'
             : articleText;
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -262,29 +267,29 @@ Generate the 10 MCQs now:`
         const data = await response.json();
         console.log('[generateMCQs] OpenRouter API response received');
         console.log('[generateMCQs] Response structure:', JSON.stringify(data, null, 2).substring(0, 500));
-        
+
         if (data.choices && data.choices[0] && data.choices[0].message) {
             const content = data.choices[0].message.content;
             console.log('[generateMCQs] Content type:', typeof content);
             console.log('[generateMCQs] Content exists:', !!content);
-            
+
             if (!content || typeof content !== 'string') {
                 console.error('[generateMCQs] Invalid content from API:', content);
                 throw new Error('AI response content is invalid or empty');
             }
-            
+
             const generatedText = content.trim();
             console.log('[generateMCQs] Generated MCQs text length:', generatedText.length);
             console.log('[generateMCQs] First 200 chars:', generatedText.substring(0, 200));
-            
+
             const parsedMCQs = parseMCQs(generatedText);
             console.log('[generateMCQs] Parsed MCQs count:', parsedMCQs.length);
-            
+
             if (parsedMCQs.length === 0) {
                 console.error('[generateMCQs] Failed to parse any MCQs. Full response:', generatedText.substring(0, 1000));
                 throw new Error('Failed to parse MCQs from AI response');
             }
-            
+
             return parsedMCQs.slice(0, 10); // Ensure max 10 MCQs
         } else {
             console.error('[generateMCQs] Unexpected OpenRouter API response format:', JSON.stringify(data, null, 2));
@@ -311,13 +316,18 @@ export async function POST(
         // Handle both Promise and direct params (Next.js 13+ vs 15)
         const resolvedParams = params instanceof Promise ? await params : params;
         console.log('[MCQs Generate POST] Params:', resolvedParams);
-        
+
         const articleId = parseInt(resolvedParams.id);
         console.log('[MCQs Generate POST] Parsed article ID:', articleId);
 
         if (isNaN(articleId)) {
             console.error('[MCQs Generate POST] Invalid article ID:', resolvedParams.id);
             return NextResponse.json({ error: 'Invalid article ID' }, { status: 400, headers: corsHeaders });
+        }
+
+        if (!OPENROUTER_API_KEY) {
+            console.error('[MCQs Generate POST] OPENROUTER_API_KEY not configured');
+            return NextResponse.json({ error: 'Server configuration error: API key missing' }, { status: 500, headers: corsHeaders });
         }
 
         // Fetch article (must be published)
@@ -351,9 +361,9 @@ export async function POST(
 
         if (existingMCQs.length > 0) {
             console.log('[MCQs Generate POST] MCQs already exist:', existingMCQs.length);
-            return NextResponse.json({ 
+            return NextResponse.json({
                 error: 'MCQs already exist for this article',
-                mcqs: existingMCQs 
+                mcqs: existingMCQs
             }, { status: 400, headers: corsHeaders });
         }
 
@@ -361,8 +371,11 @@ export async function POST(
         console.log('[MCQs Generate POST] Extracting text content...');
         const articleText = extractTextContent(article.content || []);
         console.log('[MCQs Generate POST] Extracted text length:', articleText.length);
-        
-        if (articleText.length < 50) {
+
+        // Check total available content (body + summary)
+        const totalContentLength = articleText.length + (article.summary?.length || 0);
+
+        if (totalContentLength < 50) {
             console.error('[MCQs Generate POST] Article content too short');
             return NextResponse.json({ error: 'Article content too short to generate MCQs' }, { status: 400, headers: corsHeaders });
         }
@@ -382,7 +395,7 @@ export async function POST(
         for (let i = 0; i < generatedMCQs.length; i++) {
             const mcq = generatedMCQs[i];
             console.log(`[MCQs Generate POST] Saving MCQ ${i + 1}/${generatedMCQs.length}:`, mcq.question.substring(0, 50) + '...');
-            
+
             try {
                 const [saved] = await db
                     .insert(articleMcqs)
@@ -397,7 +410,7 @@ export async function POST(
                         explanation: mcq.explanation || null,
                     })
                     .returning();
-                
+
                 savedMCQs.push(saved);
                 console.log(`[MCQs Generate POST] MCQ ${i + 1} saved successfully`);
             } catch (dbError) {
@@ -415,7 +428,7 @@ export async function POST(
 
         console.log(`[MCQs Generate POST] Successfully generated and saved ${savedMCQs.length} MCQs for article ${articleId}`);
 
-        return NextResponse.json({ 
+        return NextResponse.json({
             success: true,
             mcqs: savedMCQs,
             count: savedMCQs.length
@@ -423,7 +436,7 @@ export async function POST(
     } catch (error) {
         console.error('[MCQs Generate POST] Error details:', error);
         console.error('[MCQs Generate POST] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-        return NextResponse.json({ 
+        return NextResponse.json({
             error: 'Failed to generate MCQs',
             details: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500, headers: corsHeaders });
