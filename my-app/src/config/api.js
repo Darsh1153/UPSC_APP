@@ -6,8 +6,10 @@ import Constants from 'expo-constants';
 // Find it using: ipconfig (Windows) or ifconfig (Mac/Linux)
 const LOCAL_DEV_IP = '192.168.172.219'; // Current local IP
 
+const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV === 'development';
+
 const getApiUrl = () => {
-  if (__DEV__) {
+  if (isDev) {
     // For web, use localhost:3000 (where Next.js server runs)
     if (Platform.OS === 'web') {
       // Check if we're in browser and can detect the origin
@@ -50,7 +52,7 @@ export const API_BASE_URL = getApiUrl();
 export const MOBILE_API_URL = `${API_BASE_URL}/mobile`;
 
 // Debug log for mobile API URL (development only)
-if (__DEV__) {
+if (isDev) {
   console.log('[API] MOBILE_API_URL:', MOBILE_API_URL);
 }
 

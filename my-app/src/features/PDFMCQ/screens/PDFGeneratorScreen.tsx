@@ -26,7 +26,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
 // @ts-ignore
-import { getMobileApiEndpoint } from '../../../../config/api';
+import { getMobileApiEndpoint } from '../../../config/api';
 // @ts-ignore
 import { useTheme } from '../../Reference/theme/ThemeContext';
 // @ts-ignore
