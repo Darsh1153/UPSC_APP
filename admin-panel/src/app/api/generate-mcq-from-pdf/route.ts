@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'OpenRouter API Key not configured' }, { status: 500, headers: corsHeaders });
         }
 
-        const model = 'google/gemini-2.0-flash-001';
+        const model = 'google/gemini-3-flash-preview';
 
         const prompt = `
 You are an expert UPSC question setter.

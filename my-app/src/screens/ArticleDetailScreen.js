@@ -609,6 +609,7 @@ export default function ArticleDetailScreen({ route, navigation }) {
         )}
 
         {/* Generate MCQs Button */}
+        {/*
         <TouchableOpacity
           style={[styles.generateMCQsButton, { backgroundColor: theme.colors.primary }]}
           onPress={handleGenerateMCQs}
@@ -631,6 +632,7 @@ export default function ArticleDetailScreen({ route, navigation }) {
             </>
           )}
         </TouchableOpacity>
+        */}
 
         {/* MCQs Section */}
         {mcqsLoading ? (

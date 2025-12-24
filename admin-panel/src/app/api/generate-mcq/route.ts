@@ -35,7 +35,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'OpenRouter API Key not configured' }, { status: 500, headers: corsHeaders });
         }
 
-        const model = 'google/gemini-2.0-flash-001';
+        const model = 'google/gemini-3-flash-preview';
 
         const topicText = `${PAPER_TOPICS[paperType] || paperType}. ${preferences ? `Focus on: ${preferences}` : ''}`;
 

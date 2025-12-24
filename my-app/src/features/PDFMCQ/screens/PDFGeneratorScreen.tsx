@@ -40,7 +40,7 @@ if (Platform.OS !== 'web') {
 
 // ===================== CONFIGURATION =====================
 const CONFIG = {
-    OPENROUTER_API_KEY: process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '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',
+    OPENROUTER_API_KEY: process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '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',
     OPENROUTER_URL: 'https://openrouter.ai/api/v1/chat/completions',
     // Gemini 3 Pro Preview
     AI_MODEL: 'google/gemini-3-pro-preview',

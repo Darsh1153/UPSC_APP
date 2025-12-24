@@ -69,7 +69,7 @@ ${sourceContent || topic || 'No specific content provided, generate based on top
                 'X-Title': 'UPSC Prep App'
             },
             body: JSON.stringify({
-                model: "google/gemini-2.0-flash-001",
+                model: "google/gemini-3-flash-preview",
                 messages: [{ role: "user", content: prompt }],
                 response_format: { type: "json_object" }
             })

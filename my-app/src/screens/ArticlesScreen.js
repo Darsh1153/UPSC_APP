@@ -8,8 +8,8 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
-  Platform, // Added
-  // TextInput, // Removed
+  Platform,
+  Image,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker'; // Added
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,6 +32,12 @@ const FILTERS = {
     'Environment',
     'Current Affairs',
   ],
+};
+
+const SOURCE_LOGOS = {
+  'TH': require('../../assets/logos/the_hindu.png'),
+  'ET': require('../../assets/logos/economic_times.png'),
+  'PIB': require('../../assets/logos/pib.png'),
 };
 
 export default function ArticlesScreen({ navigation }) {
@@ -282,21 +288,22 @@ export default function ArticlesScreen({ navigation }) {
             style={[
               styles.sourceButtonItem,
               {
-                backgroundColor: selectedSource === source
-                  ? theme.colors.primary
-                  : theme.colors.surface
+                backgroundColor: theme.colors.surface,
+                borderColor: selectedSource === source ? theme.colors.primary : 'transparent',
+                borderWidth: selectedSource === source ? 2 : 0,
               },
             ]}
             onPress={() => setSelectedSource(selectedSource === source ? null : source)}
           >
-            <Text
+            <Image
+              source={SOURCE_LOGOS[source]}
               style={[
-                styles.sourceButtonText,
-                { color: selectedSource === source ? '#FFFFFF' : theme.colors.text },
+                styles.sourceLogo,
+                source === 'ET' && styles.sourceLogoET,
+                { opacity: selectedSource === source ? 1 : 0.6 }
               ]}
-            >
-              {source}
-            </Text>
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         ))}
       </View>
@@ -492,20 +499,24 @@ const styles = StyleSheet.create({
   },
   sourceButtonItem: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
+    height: 60,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 2,
+    padding: 2,
   },
-  sourceButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+  sourceLogo: {
+    width: '95%',
+    height: '90%',
+  },
+  sourceLogoET: {
+    width: '100%',
+    height: '100%',
   },
   filtersContainer: {
     paddingVertical: 6,

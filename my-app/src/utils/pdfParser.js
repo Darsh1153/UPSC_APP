@@ -23,7 +23,7 @@ export const pickPDF = async () => {
     const fileName = file.name || 'document';
     const isPDF = file.mimeType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf');
     const isImage = file.mimeType?.startsWith('image/');
-    
+
     return {
       success: true,
       file: {
@@ -47,7 +47,7 @@ export const pickPDF = async () => {
 const scanWithOCR = async (fileUri, fileName, mimeType, onProgress) => {
   try {
     onProgress?.('Reading file...');
-    
+
     // Read file as base64
     let base64Data;
     try {
@@ -64,15 +64,15 @@ const scanWithOCR = async (fileUri, fileName, mimeType, onProgress) => {
     }
 
     onProgress?.('Uploading to OCR service...');
-    
+
     // Determine file type
     const isPDF = fileName?.toLowerCase().endsWith('.pdf') || mimeType === 'application/pdf';
-    const dataPrefix = isPDF 
-      ? 'data:application/pdf;base64,' 
+    const dataPrefix = isPDF
+      ? 'data:application/pdf;base64,'
       : `data:${mimeType || 'image/png'};base64,`;
-    
+
     onProgress?.('Scanning document...');
-    
+
     // Create form data
     const formData = new FormData();
     formData.append('base64Image', dataPrefix + base64Data);
@@ -83,7 +83,7 @@ const scanWithOCR = async (fileUri, fileName, mimeType, onProgress) => {
     formData.append('detectOrientation', 'true');
     formData.append('scale', 'true');
     formData.append('OCREngine', '2');
-    
+
     // Call OCR API
     const response = await fetch(OCR_API_URL, {
       method: 'POST',
@@ -92,27 +92,27 @@ const scanWithOCR = async (fileUri, fileName, mimeType, onProgress) => {
         'Accept': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       return { success: false, error: `Server error: ${response.status}` };
     }
-    
+
     const result = await response.json();
-    
+
     if (result.OCRExitCode === 1 && result.ParsedResults && result.ParsedResults.length > 0) {
       const fullText = result.ParsedResults
         .map(page => page.ParsedText || '')
         .join('\n\n');
-      
+
       if (fullText.trim().length === 0) {
         return { success: false, error: 'No text found in document' };
       }
-      
+
       return { success: true, text: fullText };
     } else {
-      const errorMsg = result.ErrorMessage || 
-                       result.ParsedResults?.[0]?.ErrorMessage || 
-                       'OCR could not process the file';
+      const errorMsg = result.ErrorMessage ||
+        result.ParsedResults?.[0]?.ErrorMessage ||
+        'OCR could not process the file';
       return { success: false, error: errorMsg };
     }
   } catch (error) {
@@ -126,7 +126,7 @@ const scanWithOCR = async (fileUri, fileName, mimeType, onProgress) => {
  */
 export const parseMCQText = (text) => {
   const questions = [];
-  
+
   const cleanText = text
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n')
@@ -166,7 +166,7 @@ const parseQuestionBlock = (block, defaultNum) => {
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i];
-    
+
     const optionMatch = line.match(/^Option\s*([A-Da-d])[:\s]+(.+)/i);
     if (optionMatch) {
       options.push(optionMatch[2].trim());
@@ -176,8 +176,8 @@ const parseQuestionBlock = (block, defaultNum) => {
     const simpleMatch = line.match(/^([A-Da-d])[.):\s]+(.+)/i);
     if (simpleMatch && !answerFound) {
       const optionText = simpleMatch[2].trim();
-      if (!optionText.toLowerCase().startsWith('answer') && 
-          !optionText.toLowerCase().startsWith('correct')) {
+      if (!optionText.toLowerCase().startsWith('answer') &&
+        !optionText.toLowerCase().startsWith('correct')) {
         options.push(optionText);
         continue;
       }
@@ -240,11 +240,11 @@ export const processPDF = async (fileInfo, onProgress) => {
     if (fileInfo.mimeType?.includes('text')) {
       onProgress?.('Reading text file...');
       const textContent = await tryReadTextFile(fileInfo.uri);
-      
+
       if (textContent) {
         onProgress?.('Parsing questions...');
         const questions = parseMCQText(textContent);
-        
+
         if (questions.length > 0) {
           return {
             success: true,
@@ -256,17 +256,17 @@ export const processPDF = async (fileInfo, onProgress) => {
       }
       return { success: false, error: 'No questions found in text file', needsManualInput: true };
     }
-    
+
     // For PDFs and images, use OCR
     onProgress?.('Starting OCR scan...');
-    
+
     const ocrResult = await scanWithOCR(
-      fileInfo.uri, 
-      fileInfo.name, 
+      fileInfo.uri,
+      fileInfo.name,
       fileInfo.mimeType,
       onProgress
     );
-    
+
     if (!ocrResult.success) {
       return {
         success: false,
@@ -274,11 +274,11 @@ export const processPDF = async (fileInfo, onProgress) => {
         needsManualInput: true,
       };
     }
-    
+
     onProgress?.('Extracting questions...');
-    
+
     const questions = parseMCQText(ocrResult.text);
-    
+
     if (questions.length > 0) {
       return {
         success: true,
@@ -295,11 +295,11 @@ export const processPDF = async (fileInfo, onProgress) => {
         needsManualInput: true,
       };
     }
-    
+
   } catch (error) {
     console.error('Error processing file:', error);
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error.message || 'Processing failed',
       needsManualInput: true,
     };
@@ -315,11 +315,11 @@ export const processManualText = (text) => {
   }
 
   const questions = parseMCQText(text);
-  
+
   if (questions.length === 0) {
-    return { 
-      success: false, 
-      error: 'Could not find any questions. Check the format.' 
+    return {
+      success: false,
+      error: 'Could not find any questions. Check the format.'
     };
   }
 

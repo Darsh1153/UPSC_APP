@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Trash2, Edit2, Globe, Eye, EyeOff, FileText, Link2, Filter, PenLine, Plus, ArrowLeft, ExternalLink, Calendar, User, Tag, BookOpen } from 'lucide-react';
+import { Search, Trash2, Edit2, Globe, Eye, EyeOff, FileText, Link2, Filter, PenLine, Plus, ArrowLeft, ExternalLink, Calendar, User, Tag, BookOpen, Brain } from 'lucide-react';
 
 interface ContentBlock {
     type: string;
@@ -44,6 +44,7 @@ export default function ArticlesPage() {
     const [editingArticle, setEditingArticle] = useState<Article | null>(null);
     const [previewArticle, setPreviewArticle] = useState<FullArticle | null>(null);
     const [previewLoading, setPreviewLoading] = useState(false);
+    const [generatingMCQs, setGeneratingMCQs] = useState(false);
 
     // Form state
     const [scrapeUrl, setScrapeUrl] = useState('');
@@ -259,6 +260,32 @@ export default function ArticlesPage() {
             console.error('Fetch article error:', error);
         } finally {
             setPreviewLoading(false);
+        }
+    };
+
+    const handleGenerateMCQs = async (articleId: number) => {
+        if (!confirm('Generate 10 MCQs for this article using AI?')) return;
+
+        setGeneratingMCQs(true);
+        const token = localStorage.getItem('sb-access-token');
+        try {
+            const res = await fetch(`/api/articles/${articleId}/mcqs/generate`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (res.ok) {
+                alert('MCQs generated successfully!');
+                // We could refresh or redirect here
+            } else {
+                const data = await res.json();
+                alert(`Error: ${data.error || 'Failed to generate MCQs'}`);
+            }
+        } catch (error) {
+            console.error('Generate MCQs error:', error);
+            alert('An error occurred while generating MCQs');
+        } finally {
+            setGeneratingMCQs(false);
         }
     };
 
@@ -562,6 +589,17 @@ export default function ArticlesPage() {
                                 {previewArticle.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                 {previewArticle.isPublished ? 'Unpublish' : 'Publish'}
                             </button>
+
+                            {/* 
+                            <button
+                                onClick={() => handleGenerateMCQs(previewArticle.id)}
+                                disabled={generatingMCQs}
+                                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                            >
+                                <Brain className="w-4 h-4" />
+                                {generatingMCQs ? 'Generating...' : 'Generate MCQs'}
+                            </button>
+                            */}
                         </div>
                     )}
                 </div>

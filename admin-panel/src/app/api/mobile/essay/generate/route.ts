@@ -31,7 +31,7 @@ async function generateEssayWithAI(topic: string, difficulty: string, language: 
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            model: 'google/gemini-pro-1.5',
+            model: 'google/gemini-3-flash-preview',
             messages: [
                 {
                     role: 'user',

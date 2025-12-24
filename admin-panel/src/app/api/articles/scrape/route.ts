@@ -127,7 +127,7 @@ async function generateParaphrasedSummary(articleText: string, title: string): P
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'google/gemini-2.5-flash-preview-09-2025',
+                model: 'google/gemini-3-flash-preview',
                 messages: [
                     {
                         role: 'user',

@@ -4,12 +4,12 @@ import { db } from '@/lib/db';
 import { articles, articleMcqs } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = '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';
 
 // Extract text content from article for RAG
-function extractTextContent(contentBlocks: Array<{ type: string; content: string; [key: string]: any }>): string {
+function extractTextContent(contentBlocks: Array<{ type: string; content: string;[key: string]: any }>): string {
     const textParts: string[] = [];
-    
+
     for (const block of contentBlocks) {
         if (block.type === 'heading' && block.content) {
             textParts.push(block.content);
@@ -23,7 +23,7 @@ function extractTextContent(contentBlocks: Array<{ type: string; content: string
             textParts.push(block.content);
         }
     }
-    
+
     return textParts.join('\n\n');
 }
 
@@ -61,7 +61,7 @@ function parseMCQs(aiResponse: string): Array<{
 
     // Split by questions
     const sections = aiResponse.split(/(?:Question\s*\d+|^\d+\.)/m);
-    
+
     for (const section of sections) {
         if (!section.trim()) continue;
 
@@ -100,7 +100,7 @@ function parseMCQs(aiResponse: string): Array<{
                 correctAnswer: currentCorrect,
                 explanation: currentExplanation || undefined,
             });
-            
+
             // Reset for next question
             currentQuestion = '';
             currentOptions = {};
@@ -152,8 +152,8 @@ async function generateMCQs(articleText: string, title: string, summary: string)
     try {
         // Truncate article text if too long
         const maxTextLength = 8000;
-        const truncatedText = articleText.length > maxTextLength 
-            ? articleText.substring(0, maxTextLength) + '...' 
+        const truncatedText = articleText.length > maxTextLength
+            ? articleText.substring(0, maxTextLength) + '...'
             : articleText;
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -165,7 +165,7 @@ async function generateMCQs(articleText: string, title: string, summary: string)
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'google/gemini-2.5-flash-preview-09-2025',
+                model: 'google/gemini-3-flash-preview',
                 messages: [
                     {
                         role: 'user',
@@ -221,18 +221,18 @@ Generate the 10 MCQs now:`
 
         const data = await response.json();
         console.log('OpenRouter API response received');
-        
+
         if (data.choices && data.choices[0] && data.choices[0].message) {
             const generatedText = data.choices[0].message.content.trim();
             console.log('Generated MCQs text length:', generatedText.length);
-            
+
             const parsedMCQs = parseMCQs(generatedText);
             console.log('Parsed MCQs count:', parsedMCQs.length);
-            
+
             if (parsedMCQs.length === 0) {
                 throw new Error('Failed to parse MCQs from AI response');
             }
-            
+
             return parsedMCQs.slice(0, 10); // Ensure max 10 MCQs
         } else {
             console.error('Unexpected OpenRouter API response format:', data);
@@ -277,15 +277,15 @@ export async function POST(
             .where(eq(articleMcqs.articleId, articleId));
 
         if (existingMCQs.length > 0) {
-            return NextResponse.json({ 
+            return NextResponse.json({
                 error: 'MCQs already exist for this article. Delete existing MCQs first.',
-                mcqs: existingMCQs 
+                mcqs: existingMCQs
             }, { status: 400 });
         }
 
         // Extract text content
         const articleText = extractTextContent(article.content || []);
-        
+
         if (articleText.length < 50) {
             return NextResponse.json({ error: 'Article content too short to generate MCQs' }, { status: 400 });
         }
@@ -313,20 +313,20 @@ export async function POST(
                     explanation: mcq.explanation || null,
                 })
                 .returning();
-            
+
             savedMCQs.push(saved);
         }
 
         console.log(`Successfully generated and saved ${savedMCQs.length} MCQs for article ${articleId}`);
 
-        return NextResponse.json({ 
+        return NextResponse.json({
             success: true,
             mcqs: savedMCQs,
             count: savedMCQs.length
         });
     } catch (error) {
         console.error('Generate MCQs error:', error);
-        return NextResponse.json({ 
+        return NextResponse.json({
             error: 'Failed to generate MCQs',
             details: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 });

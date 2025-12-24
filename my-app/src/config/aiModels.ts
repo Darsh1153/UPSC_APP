@@ -18,9 +18,9 @@ export const SITE_CONFIG = {
 // Available AI Models
 export const AI_MODELS = {
     // Gemini Models (Google) - Fastest for our use case
-    GEMINI_FLASH: 'google/gemini-2.5-flash-preview-05-20',
-    GEMINI_FLASH_LATEST: 'google/gemini-2.5-flash-preview-09-2025',
-    GEMINI_PRO: 'google/gemini-2.5-pro-preview-05-06',
+    GEMINI_FLASH: 'google/gemini-3-flash-preview',
+    GEMINI_FLASH_LATEST: 'google/gemini-3-flash-preview',
+    GEMINI_PRO: 'google/gemini-3-flash-preview',
 
     // Claude Models (Anthropic) - Best for analysis
     CLAUDE_SONNET: 'anthropic/claude-sonnet-4',

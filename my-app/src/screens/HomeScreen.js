@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,6 +21,7 @@ export default function HomeScreen({ navigation }) {
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
   const { horizontalPadding, isWeb } = useWebStyles();
+  const { width } = useWindowDimensions();
   const [stats, setStats] = useState({ totalTests: 0, correctAnswers: 0, totalQuestions: 0 });
   const [streak, setStreak] = useState({ currentStreak: 0 });
 
@@ -206,14 +208,14 @@ export default function HomeScreen({ navigation }) {
 
         {/* Main Features */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Start Learning</Text>
-        <View style={[styles.grid, isWeb && styles.gridWeb]}>
+        <View style={[styles.grid, (isWeb && width > 600) && styles.gridWeb]}>
           {mainFeatures.map((feature) => (
             <TouchableOpacity
               key={feature.id}
               style={[
                 styles.featureCard,
                 { backgroundColor: theme.colors.surface },
-                isWeb && styles.featureCardWeb
+                (isWeb && width > 600) && styles.featureCardWeb
               ]}
               activeOpacity={0.7}
               onPress={() => navigation.navigate(feature.screen, { type: feature.id })}

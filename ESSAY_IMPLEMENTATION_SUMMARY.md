@@ -163,7 +163,7 @@ curl -X POST http://localhost:3000/api/mobile/essay/evaluate \
 
 The API key is currently hardcoded in the route file:
 ```typescript
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = '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';
 ```
 
 **To use your own key**:

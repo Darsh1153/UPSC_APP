@@ -1,6 +1,6 @@
 // Test OpenRouter API Key
 // Run this to verify your API key works
-const API_KEY = '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';
+const API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || 'YOUR_API_KEY_HERE';
 const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 async function testApiKey() {
@@ -18,7 +18,7 @@ async function testApiKey() {
                 'X-Title': 'UPSC Prep Test',
             },
             body: JSON.stringify({
-                model: 'google/gemini-flash-1.5',
+                model: 'google/gemini-3-flash-preview',
                 messages: [
                     { role: 'user', content: 'Say "Hello World"' }
                 ],
