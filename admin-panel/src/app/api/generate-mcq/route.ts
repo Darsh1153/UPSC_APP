@@ -31,7 +31,11 @@ export async function POST(req: Request) {
 
         const apiKey = process.env.OPENROUTER_API_KEY;
 
+        console.log('Generating MCQs...');
+        console.log('API Key configured:', !!apiKey);
+
         if (!apiKey) {
+            console.error('CRITICAL: OpenRouter API Key is missing in environment variables');
             return NextResponse.json({ error: 'OpenRouter API Key not configured' }, { status: 500, headers: corsHeaders });
         }
 
