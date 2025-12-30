@@ -25,6 +25,8 @@ import ProgressScreen from './src/screens/ProgressScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import ArticlesScreen from './src/screens/ArticlesScreen';
 import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
+import QuestionPaperScreen from './src/screens/QuestionPaperScreen';
+import QuestionSetListScreen from './src/screens/QuestionSetListScreen';
 
 // Roadmap Screens
 import RoadmapScreen from './src/screens/RoadmapScreen';
@@ -129,6 +131,8 @@ const MainNavigator = () => (
     <Stack.Screen name="PDFMCQList" component={PDFMCQListScreen} />
     {/* AI MCQ Generator (without PDF upload) */}
     <Stack.Screen name="AIMCQGenerator" component={AIMCQGeneratorScreen} />
+    <Stack.Screen name="QuestionPaper" component={QuestionPaperScreen} />
+    <Stack.Screen name="QuestionSetList" component={QuestionSetListScreen} />
   </Stack.Navigator>
 );
 

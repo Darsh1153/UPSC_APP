@@ -4,14 +4,14 @@
 
 // OpenRouter API Configuration
 // Get your API key from https://openrouter.ai/keys
-const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '';
+import { OPENROUTER_API_KEY } from '../../../utils/secureKey'; // process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '';
 
 // Debug: Log API key status (not the full key for security)
 console.log('[OpenRouter] API Key configured:', OPENROUTER_API_KEY ? `Yes (${OPENROUTER_API_KEY.substring(0, 10)}...)` : 'No');
 console.log('[OpenRouter] API Key length:', OPENROUTER_API_KEY.length);
 
 const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL = 'google/gemini-3-pro-preview'; // Gemini 3 Pro with reasoning
+const MODEL = 'google/gemini-3-flash-preview'; // Gemini 3 Pro with reasoning
 
 // Check if API key is configured
 const isApiKeyConfigured = () => {

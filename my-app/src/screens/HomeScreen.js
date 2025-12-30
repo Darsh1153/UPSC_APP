@@ -159,6 +159,14 @@ export default function HomeScreen({ navigation }) {
       gradient: ['#11998e', '#38ef7d'],
       screen: 'DailyPlan',
     },
+    {
+      id: 'questionpaper',
+      icon: 'document-text-outline',
+      title: "Question Paper",
+      desc: 'Practice Questions',
+      gradient: ['#F59E0B', '#D97706'], // Amber/Orange gradient
+      screen: 'QuestionSetList',
+    },
   ];
 
   return (

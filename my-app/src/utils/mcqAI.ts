@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 
-const OPENROUTER_API_KEY = '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';
+import { OPENROUTER_API_KEY } from './secureKey';
 const SITE_URL = 'https://upsc-prep-app.com';
 const SITE_NAME = 'UPSC Prep App';
 

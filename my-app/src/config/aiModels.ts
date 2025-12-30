@@ -6,7 +6,8 @@
 
 // OpenRouter API Key - Used for all AI operations
 // Get your API key from https://openrouter.ai/keys
-export const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '';
+import { OPENROUTER_API_KEY as KEY } from '../utils/secureKey';
+export const OPENROUTER_API_KEY = KEY; // process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '';
 export const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // Site metadata for OpenRouter
@@ -15,7 +16,6 @@ export const SITE_CONFIG = {
     name: 'UPSC Prep App',
 };
 
-// Available AI Models
 export const AI_MODELS = {
     // Gemini Models (Google) - Fastest for our use case
     GEMINI_FLASH: 'google/gemini-3-flash-preview',
@@ -23,8 +23,8 @@ export const AI_MODELS = {
     GEMINI_PRO: 'google/gemini-3-flash-preview',
 
     // Claude Models (Anthropic) - Best for analysis
-    CLAUDE_SONNET: 'anthropic/claude-sonnet-4',
-    CLAUDE_HAIKU: 'anthropic/claude-3.5-haiku',
+    CLAUDE_SONNET: 'anthropic/claude-3.5-sonnet',
+    CLAUDE_HAIKU: 'anthropic/claude-3-haiku',
 
     // OpenAI Models
     GPT4_TURBO: 'openai/gpt-4-turbo',
@@ -52,8 +52,8 @@ export const ACTIVE_MODELS = {
 // Model capabilities
 export const MODEL_CAPABILITIES = {
     [AI_MODELS.GEMINI_FLASH]: { vision: true, speed: 'ultra-fast', maxTokens: 8192 },
-    [AI_MODELS.GEMINI_FLASH_LATEST]: { vision: true, speed: 'ultra-fast', maxTokens: 8192 },
-    [AI_MODELS.GEMINI_PRO]: { vision: true, speed: 'fast', maxTokens: 16384 },
+    // [AI_MODELS.GEMINI_FLASH_LATEST]: { ... }, // Same as GEMINI_FLASH
+    // [AI_MODELS.GEMINI_PRO]: { vision: true, speed: 'fast', maxTokens: 16384 }, // Same as GEMINI_FLASH
     [AI_MODELS.CLAUDE_SONNET]: { vision: true, speed: 'fast', maxTokens: 8192 },
     [AI_MODELS.CLAUDE_HAIKU]: { vision: true, speed: 'ultra-fast', maxTokens: 4096 },
     [AI_MODELS.GPT4_TURBO]: { vision: true, speed: 'medium', maxTokens: 4096 },

@@ -38,12 +38,14 @@ if (Platform.OS !== 'web') {
     FileSystem = require('expo-file-system/legacy');
 }
 
+import { OPENROUTER_API_KEY } from '../../../utils/secureKey';
+
 // ===================== CONFIGURATION =====================
 const CONFIG = {
-    OPENROUTER_API_KEY: process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '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',
+    OPENROUTER_API_KEY: OPENROUTER_API_KEY,
     OPENROUTER_URL: 'https://openrouter.ai/api/v1/chat/completions',
     // Gemini 3 Pro Preview
-    AI_MODEL: 'google/gemini-3-pro-preview',
+    AI_MODEL: 'google/gemini-3-flash-preview',
     // File size limits
     MAX_FILE_SIZE_MB: 20,
     MAX_TEXT_LENGTH: 200000,
