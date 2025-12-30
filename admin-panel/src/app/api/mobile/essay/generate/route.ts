@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { OPENROUTER_API_KEY } from '@/lib/secure-config';
 import { corsHeaders } from '../../_cors';
 
 // Helper to generate Essay using AI
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { topic, difficulty = 'Medium', language = 'English', length = '1000' } = body;
 
-        const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+        // const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
         if (!OPENROUTER_API_KEY) {
             console.error('OPENROUTER_API_KEY is missing');
             return NextResponse.json(

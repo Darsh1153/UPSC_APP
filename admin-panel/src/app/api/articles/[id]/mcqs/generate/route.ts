@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { articles, articleMcqs } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
-const OPENROUTER_API_KEY = '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';
+import { OPENROUTER_API_KEY } from '@/lib/secure-config'; // Previously hardcoded key replaced
 
 // Extract text content from article for RAG
 function extractTextContent(contentBlocks: Array<{ type: string; content: string;[key: string]: any }>): string {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { OPENROUTER_API_KEY } from '@/lib/secure-config';
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -6,7 +7,7 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+// process.env.OPENROUTER_API_KEY;
 
 // Handle preflight requests
 export async function OPTIONS() {
@@ -196,7 +197,7 @@ Be honest, constructive, and specific in your feedback. The score should reflect
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'google/gemini-3-flash-preview', // Using Flash 2.0 for better vision capabilities, or exp-1206
+                model: 'google/gemini-3-flash-preview', // Using Flash 3.0 for better vision capabilities
                 messages: messages,
                 reasoning: { enabled: true },
                 temperature: 0.7,
@@ -283,7 +284,7 @@ Be honest, constructive, and specific in your feedback. The score should reflect
             evaluation,
             wordCount,
             reasoning_used: !!reasoningDetails,
-            model: 'google/gemini-exp-1206:free'
+            model: 'google/gemini-3-flash-preview'
         }, { headers: corsHeaders });
 
     } catch (error) {

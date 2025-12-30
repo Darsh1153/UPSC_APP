@@ -5,7 +5,7 @@ import { eq, and } from 'drizzle-orm';
 
 import { corsHeaders } from '../../../../_cors';
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+import { OPENROUTER_API_KEY } from '@/lib/secure-config'; // process.env.OPENROUTER_API_KEY;
 
 if (!OPENROUTER_API_KEY) {
     console.error('OPENROUTER_API_KEY is not defined in environment variables');
@@ -204,7 +204,7 @@ async function generateMCQs(articleText: string, title: string, summary: string)
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'openai/gpt-5-mini',
+                model: 'google/gemini-3-flash-preview',
                 messages: [
                     {
                         role: 'user',

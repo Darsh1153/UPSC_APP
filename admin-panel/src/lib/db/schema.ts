@@ -54,7 +54,7 @@ export const articles = pgTable('articles', {
     publishedDate: timestamp('published_date'),
     summary: text('summary'),
     metaDescription: text('meta_description'),
-    content: jsonb('content').$type<Array<{ type: string; content: string; [key: string]: any }>>(),
+    content: jsonb('content').$type<Array<{ type: string; content: string;[key: string]: any }>>(),
     rawHtml: text('raw_html'),
     images: jsonb('images').$type<Array<{ url: string; alt?: string; caption?: string }>>(),
     gsPaper: varchar('gs_paper', { length: 50 }),
@@ -78,6 +78,34 @@ export const articleMcqs = pgTable('article_mcqs', {
     optionD: text('option_d').notNull(),
     correctAnswer: varchar('correct_answer', { length: 1 }).notNull(), // 'A', 'B', 'C', or 'D'
     explanation: text('explanation'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// ============= PRACTICE QUESTIONS (MANUAL) =============
+
+
+
+export const questionSets = pgTable('question_sets', {
+    id: serial('id').primaryKey(),
+    title: varchar('title', { length: 255 }).notNull(),
+    description: text('description'),
+    year: integer('year'),
+    isPublished: boolean('is_published').default(false),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const practiceQuestions = pgTable('practice_questions', {
+    id: serial('id').primaryKey(),
+    questionSetId: integer('question_set_id').references(() => questionSets.id, { onDelete: 'cascade' }),
+    question: text('question').notNull(),
+    optionA: text('option_a').notNull(),
+    optionB: text('option_b').notNull(),
+    optionC: text('option_c').notNull(),
+    optionD: text('option_d').notNull(),
+    correctAnswer: varchar('correct_answer', { length: 1 }).notNull(), // 'A', 'B', 'C', or 'D'
+    explanation: text('explanation').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -341,6 +369,17 @@ export const noteTagsRelations = relations(noteTags, ({ one }) => ({
     tag: one(tags, {
         fields: [noteTags.tagId],
         references: [tags.id],
+    }),
+}));
+
+export const questionSetsRelations = relations(questionSets, ({ many }) => ({
+    questions: many(practiceQuestions),
+}));
+
+export const practiceQuestionsRelations = relations(practiceQuestions, ({ one }) => ({
+    questionSet: one(questionSets, {
+        fields: [practiceQuestions.questionSetId],
+        references: [questionSets.id],
     }),
 }));
 

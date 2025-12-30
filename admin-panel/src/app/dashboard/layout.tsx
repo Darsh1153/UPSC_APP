@@ -3,17 +3,18 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { 
-    LayoutDashboard, 
-    Users, 
-    Map, 
-    FileText, 
-    LogOut, 
-    ChevronLeft, 
+import {
+    LayoutDashboard,
+    Users,
+    Map,
+    FileText,
+    LogOut,
+    ChevronLeft,
     Menu,
     BookMarked,
     Route,
-    BookOpen
+    BookOpen,
+    FileQuestion
 } from 'lucide-react';
 
 const navigation = [
@@ -23,6 +24,7 @@ const navigation = [
     { name: 'Articles', href: '/dashboard/articles', icon: FileText },
     { name: 'Roadmap', href: '/dashboard/roadmap', icon: Route },
     { name: 'References', href: '/dashboard/references', icon: BookOpen },
+    { name: 'Question Paper', href: '/dashboard/question-paper', icon: FileQuestion },
 ];
 
 export default function DashboardLayout({
@@ -95,11 +97,10 @@ export default function DashboardLayout({
                                     key={item.name}
                                     href={item.href}
                                     title={isSidebarCollapsed ? item.name : undefined}
-                                    className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-3' : 'px-4'} py-3 rounded-xl transition-all ${
-                                        isActive
-                                            ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30'
-                                            : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                                    }`}
+                                    className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-3' : 'px-4'} py-3 rounded-xl transition-all ${isActive
+                                        ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30'
+                                        : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                                        }`}
                                 >
                                     <Icon className={`w-5 h-5 ${!isSidebarCollapsed && 'mr-3'}`} />
                                     {!isSidebarCollapsed && <span className="font-medium">{item.name}</span>}

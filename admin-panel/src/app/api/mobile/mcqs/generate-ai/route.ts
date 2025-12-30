@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { OPENROUTER_API_KEY } from '@/lib/secure-config';
 
 export async function POST(request: NextRequest) {
     try {
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
             includeCurrentAffairs = false
         } = body;
 
-        const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+        // const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
         if (!OPENROUTER_API_KEY) {
             return NextResponse.json({ error: 'Server configuration error: API key missing' }, { status: 500 });
         }

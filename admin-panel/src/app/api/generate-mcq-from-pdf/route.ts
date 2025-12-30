@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { OPENROUTER_API_KEY } from '@/lib/secure-config';
 // Polyfill DOMMatrix for pdf-parse
 if (typeof global.DOMMatrix === 'undefined') {
     (global as any).DOMMatrix = class DOMMatrix { };
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
         // Let's go with 50000 chars.
         const truncatedText = text.substring(0, 50000);
 
-        const apiKey = process.env.OPENROUTER_API_KEY;
+        const apiKey = OPENROUTER_API_KEY;
         if (!apiKey) {
             return NextResponse.json({ error: 'OpenRouter API Key not configured' }, { status: 500, headers: corsHeaders });
         }

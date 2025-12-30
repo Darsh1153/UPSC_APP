@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
+import { OPENROUTER_API_KEY } from '@/lib/secure-config';
 
 // Simple HTML parser to extract content blocks
 function parseHtmlToBlocks(html: string): Array<{ type: string; content: string;[key: string]: any }> {
@@ -100,7 +101,7 @@ function extractTextContent(contentBlocks: Array<{ type: string; content: string
 
 // Call OpenRouter API to generate 15 bullet points
 async function generateParaphrasedSummary(articleText: string, title: string): Promise<string> {
-    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    // const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
     if (!OPENROUTER_API_KEY) {
         console.error('OPENROUTER_API_KEY is not defined in environment variables');

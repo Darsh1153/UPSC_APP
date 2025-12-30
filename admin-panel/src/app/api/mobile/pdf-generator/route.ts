@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { OPENROUTER_API_KEY } from '@/lib/secure-config';
 import { corsHeaders } from '../_cors';
 
 // Polyfill DOMMatrix for pdf-parse (backend only)
@@ -120,7 +121,7 @@ export async function POST(req: NextRequest) {
 
         console.log(`[Backend-PDF] Processing: ${fileName} (${mimeType}), Count: ${count}, Base64 Length: ${fileBase64.length}`);
 
-        const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+        // const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
         if (!OPENROUTER_API_KEY) {
             console.error('[Backend-PDF] Error: OPENROUTER_API_KEY missing');
             return NextResponse.json({ error: 'Server configuration error' }, { status: 500, headers: corsHeaders });
